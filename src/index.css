@@ -12,3 +12,208 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+a{
+  color: #272727;
+}
+
+footer{
+  position: absolute;
+  bottom: 0;
+  text-align: center;
+  width: 100%;
+  font-size: .9rem;
+  font-weight: 300;
+}
+
+footer a{
+  text-decoration: none;
+}
+
+.App, .Settings, .About{
+  min-height: calc(100vh - 4rem);
+  padding: 0 1rem 4rem 1rem;
+  position: relative;
+}
+
+.App{
+  min-width: calc(660px - 2rem);
+}
+
+.ModeSwitch button{
+  margin: .8rem .4rem;
+}
+
+#linkToSettings, #linkToAbout{
+  position: absolute;
+  top: 5rem;
+  color: #545454;
+}
+
+#linkToSettings{
+  right: calc(1.4rem + 16px);
+}
+
+#linkToAbout{
+  right: .75rem;
+}
+
+#ProjectsTable th:first-child, #ProjectsTable td:first-child{
+  width: 3rem;
+  padding: 0;
+}
+
+#ProjectsTable th:last-child, #ProjectsTable td:last-child{
+  width: 6rem;
+  padding: 0;
+}
+
+.timeStatsSideGridItem{
+  min-width: 2rem;
+}
+
+.timeStatsWarning{
+  color: #e41616f0 !important;
+}
+
+.ColorPicker svg{
+  position: relative;
+  left: .6rem;
+}
+
+.colorInput{
+  display: none;
+}
+
+.dragIcon{
+  cursor: grab;
+  color: #000000bf;
+}
+
+.timeStatsLabelDiv{
+  position: absolute;
+}
+
+.timeStatsLabelDiv label{
+  position: relative;
+  width: 10rem;
+  bottom: 1.25rem;
+  color: #000000a3;
+  font-size: .8125rem;
+  font-weight: 400;
+}
+
+.LinkToRoot{
+  position: absolute;
+  z-index: 100;
+}
+
+/* planning */
+#setEndTime{
+  margin: 2rem 0;
+}
+
+#setEndTime label{
+  margin-right: 1rem
+}
+
+#setEndTime input{
+  width: 4rem;
+  text-align: center;
+  margin: 0 .1rem;
+}
+
+#addProjectRow .ColorPicker svg{
+  position: relative;
+  left: 1.5rem;
+  top: 0.2rem;
+}
+
+.setNameCell input{
+  width: 6rem;
+}
+
+.setDurationCell input{
+  width: 5rem;
+}
+
+.setStartTimeCell{
+  padding-top: 1rem !important;
+}
+
+.setStartTimeLabelDiv{
+  position: absolute;
+  height: 0;
+  width: 0;
+}
+
+.setStartTimeCell label{
+  position: relative;
+  width: 10rem;
+  bottom: .8rem;
+  color: #000000a3;
+}
+
+.setStartTimeCell input, #BreaksDrawer .TimeSetter input{
+  width: 4rem;
+  text-align: center;
+  margin: 0 .1rem;
+}
+
+.deleteIconButton:hover{
+  color: #c70b0be6 !important;
+}
+
+.timeSetterError{
+  box-shadow: 0px 0px 10px .5px #ec0b0bf2;
+  padding: 12.5px 0;
+  border-radius: 6px;
+}
+
+.BreaksDrawer tr:last-child td{
+  padding-top: 1.5rem;
+  padding-bottom: 0.2rem;
+}
+
+.BreaksDrawer tr:nth-last-child(2) td{
+  border-bottom-color: #4848488c;
+}
+
+/* working */
+.changeProjectStateCellDoneDiv{
+  text-align: center;
+  color: #00c853;
+  font-weight: 550;
+  font-size: .9rem;
+}
+
+.stateClassTooLate{
+  color: #e41616f0 !important;
+  font-weight: 500 !important;
+}
+
+.stateClassDone{
+  color: green !important;
+  font-weight: 400 !important;
+}
+
+#congratsDiv{
+  margin-top: 2rem;
+  width: 100%;
+  text-align: center;
+  color: #00c853 !important;
+}
+
+#congrats{
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.setProgressPopover{
+  padding-left: .5rem
+}
+
+.setProgressPopover input{
+  width: 2rem;
+  text-align: right;
+}
