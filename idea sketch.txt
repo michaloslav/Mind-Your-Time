@@ -67,6 +67,7 @@ for working: show when to end + time stats
 
 
 PROBLEMS:
+needs a custom URL
 
 
 
