@@ -1,0 +1,174 @@
+can't have a network effect -> has to be focused on the individual, not interactions
+can't require a server -> has to be client-side only
+should be useful in everyday life
+
+-> productivity, organization
+
+
+
+write down projects for the day
+estimate the time it'll take to complete them (+ add buffer times)
+estimate at what time you'll stop working - show remaining time and stats compared to time needed for tasks
+make a mockup schedule for when you'll do each of them
+pick which one you're currently working on, then either confirm it as finished or as half-done
+display which things are done which are still to be done
+
+
+
+name ideas:
+words: Time, Productivity, Manage
+Productime (taken by a dev, no company)
+Productiming (hard to read at first)
+Productivize
+Mind Your Time (small extension)
+
+
+UI (functionality):
+2 states: planning or working
+	- buttons - top left corner to go to planning mode, top right corner to go to working mode
+	- planning by default if no projects, else working by default
+
+planning - write down projects: name, pick color (category, picking popup, remember favorites), estimated time
+	- write down the time when you wanna stop working
+	- plan when to do each of them: drag and drop projects into time slots? or type time and sort (easier, less user-friendly)
+
+working - show the schedule, current time and remaining time stats (include buffer times?)
+	- pick what you're currently working on
+	- if you want to stop working on something, either mark it as done (turns green) or as half-done (yellow)
+	- sort intelligently, show what still has to be done
+
+
+settings:
+	time format (12 or 24h)???
+	switch mode with tab key
+	default color
+	buffer times - yes or no & percentage
+	rounding?
+	default end time - for weekdays and weekends (Fridays and Sundays?)
+
+
+UI:
+/2 mode switch buttons on the sides
+table with tasks - edit colors
+	planning: click button on the right to edit (or simply click the text to edit it)
+		drag n drop to change order
+			automatically set the time for the first one (10mins or so from assignment)
+			set the beginning of each next project shortly after the end of the previous one
+		delete projects - icon,
+			drag and drop -> show trash bin (animation), delete on drop onto the trash bin
+	working: change status (mark as done, working on or partially done) - buttons: start, pause, done
+		update the time of future projects according to current time? (or show if late - in red?)
+		show status (color, maybe have a part of the table for finished projects)
+for planning: row at the bottom of the table for adding a new project
+	end time input
+for working: show when to end + time stats
+	show completion phase of projects
+
+
+
+PROBLEMS:
+
+
+
+NEW FEATURES:
+store the productivity percentage of the last few days, calculate an average and tell the user if their day was above or below average
+drag n drop rows in the breaks table (for organization purposes)
+find a way to let the user split a project or sth like that (if 1/2 is done)
+prompt the user to A2HS
+plannedTime validation - make sure it doesn't collide with other projects
+show errors (from TimeCalc)
+handle a project taking longer than expected (adjust duration?)
+Settings - make the sections collapsible
+small-screen optimization
+	- get rid of the duration estimate column (figure out how to show progress)
+	- when editing or creating a project, show a new view instead of editing inside of the table
+	- sidebar (Drawer, could also be BottomNavigation) - Plan, Work, Settings, About
+	- TimeStats on top of the screen
+	- footer in the About section
+	- time picker - material-ui-pickers
+repetitive tasks - remember and suggest (how to suggest - placeholder?)
+	- first let the user input them manually, then try to suggest intelligently
+Google Analytics
+AdSense
+tour for first-time visitors
+dark theme - needs CSSBaseline and icon color change etc.
+make breaks appear in the table, make em draggable
+
+
+?
+try to delete breaks automatically
+add an animation to the congrats message - confetti
+new button in planning - recalculate (replan) project times
+	- startTime = currentTime - totalDoneTime
+	- would only show up when needed (somehow calculate if the plan isn't going well and everything is delayed)
+?
+
+
+hosting: js.org
+later make a React Native app (?)
+sync the data  - Node server (mLab + Heroku)/AWS (login with Google)/remoteStorage
+
+
+
+
+	/*let mockProjects = [
+	  {
+	    id: 0,
+	    name: 'project1',
+	    color: '#951951',
+	    estimatedDuration: '10',
+	    plannedTime: {
+	      start: {
+	        h: 6,
+	        m: 0,
+	        pm: true
+	      },
+	      end: {
+	        h: 6,
+	        m: 10,
+	        pm: true
+	      }
+	    },
+	    state: 'workingOnIt'
+	  },
+	  {
+	    id: 1,
+	    name: 'project2',
+	    color: '#05595f',
+	    estimatedDuration: '120',
+	    plannedTime: {
+	      start: {
+	        h: 6,
+	        m: 20,
+	        pm: true
+	      },
+	      end: {
+	        h: 8,
+	        m: 20,
+	        pm: true
+	      }
+	    },
+	    state: 'notStarted'
+	  },
+	  {
+	    id: 2,
+	    name: 'project3',
+	    color: '#29cf42',
+	    estimatedDuration: '45',
+	    plannedTime: {
+	      start: {
+	        h: 8,
+	        m: 30,
+	        pm: true
+	      },
+	      end: {
+	        h: 9,
+	        m: 15,
+	        pm: true
+	      }
+	    },
+	    state: 'notStarted'
+	  }
+	]*/
+
+	// state: not started , working on it, paused (percentage), done

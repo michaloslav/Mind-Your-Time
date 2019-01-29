@@ -1,0 +1,51 @@
+#addDefaultColor{
+  margin-left: .75rem;
+}
+
+#defaultColorsCell div{
+  display: inline;
+}
+
+#defaultColorsCell > div{
+  margin-right: .5rem;
+}
+
+#defaultColorsCell .ColorPicker{
+  position: relative;
+  top: .375rem;
+}
+
+.removeDefaultColorDiv{
+  position: absolute;
+}
+
+.removeDefaultColor{
+  transform: scale(.5);
+  position: relative;
+  bottom: .75rem;
+  right: 1rem;
+}
+
+.removeDefaultColor:hover{
+  color: #c70b0be6;
+}
+
+.tooltipIcon{
+  transform: scale(.7);
+  position: relative;
+  top: .5rem;
+}
+
+.iconCell, .sectionIconCell, .rightCell{
+  width: 1.5rem;
+  padding: 0 !important;
+}
+
+.iconCell span, .sectionIconCell span{
+  position: relative;
+  left: .5rem
+}
+
+.sectionIconCell span{
+  top: 1.25rem;
+}
