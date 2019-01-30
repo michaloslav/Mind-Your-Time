@@ -67,7 +67,7 @@ for working: show when to end + time stats
 
 
 PROBLEMS:
-needs a custom URL
+
 
 
 
@@ -97,6 +97,7 @@ make breaks appear in the table, make em draggable
 
 
 ?
+optional projects
 try to delete breaks automatically
 add an animation to the congrats message - confetti
 new button in planning - recalculate (replan) project times

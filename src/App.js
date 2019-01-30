@@ -606,7 +606,7 @@ export default class App extends Component {
                     <br/>
                     You got {totalTimeWorkedString} worth of work done
                     <br/>
-                    You were productive {productivityPercentage}% of the time
+                    You were productive <b>{productivityPercentage}%</b> of the time
                   </div>
                 )
               )
