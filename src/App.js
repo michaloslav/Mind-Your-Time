@@ -68,7 +68,7 @@ export default class App extends Component {
     try {
       endTime = JSON.parse(localStorage.endTime)
     } catch (e) {
-      endTime = {h: 11, m: "00", pm: true}
+      endTime = {h: 9, m: "00", pm: true}
     }
 
     try {
