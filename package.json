@@ -2,7 +2,7 @@
   "name": "mind-your-time",
   "version": "0.1.0",
   "description ": "Organize your daily projects better",
-  "homepage": "https://michaloslav.github.io/Mind-Your-Time",
+  "homepage": "https://mindyourtime.js.org",
   "private": true,
   "dependencies": {
     "@material-ui/core": "^3.5.1",
