@@ -622,10 +622,10 @@ export default class App extends Component {
             )}
           </SettingsContext.Provider>
         </Grid>
-        <Link id="linkToSettings" to="/settings" aria-label="Settings">
+        <Link id="linkToSettings" to="/settings" aria-label="Settings" title="Settings">
           <SettingsIcon />
         </Link>
-        <Link id="linkToAbout" to="/about" aria-label="About">
+        <Link id="linkToAbout" to="/about" aria-label="About" title="About">
           <HelpIcon />
         </Link>
       </Grid>
