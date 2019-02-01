@@ -214,7 +214,7 @@ export default class App extends Component {
     // show/hide error
     if(newState.endTime.h === ""
       || newState.endTime.m === ""
-      || !TimeCalc.isBiggerThan(newState.endTime, this.state.currentTime, true, true)
+      || TimeCalc.isBiggerThan(this.state.currentTime, newState.endTime, true, true)
     ){
       newState.temp.endTimeErrorTimeout = setTimeout(() => {
         this.setState({showErrors: {...this.state.showErrors, endTime: true}})
