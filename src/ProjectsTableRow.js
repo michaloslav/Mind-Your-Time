@@ -87,13 +87,15 @@ export default class ProjectsTableRow extends Component {
     if(this.props.row.state === "workingOnIt"){
       progress += TimeCalc.subtractToMinutes(this.props.currentTime, this.props.row.startedWorkingOnIt, true)
     }
-    if(progress > this.props.row.estimatedDuration) progress = this.props.row.estimatedDuration
+    
+    let progressCapped = progress // same as progress except capped at estimatedDuration
+    if(progressCapped > this.props.row.estimatedDuration) progressCapped = this.props.row.estimatedDuration
 
-    let timeLeft = parseInt(this.props.row.estimatedDuration) - progress
+    let timeLeft = parseInt(this.props.row.estimatedDuration) - progressCapped
 
     // get the stateClass - done, too late
     let startIsTooLate = !TimeCalc.isBiggerThan(
-      TimeCalc.add(this.props.row.plannedTime.start, progress),
+      TimeCalc.add(this.props.row.plannedTime.start, progressCapped),
       this.props.currentTime, true, true)
     let endIsTooLate = !TimeCalc.isBiggerThan(this.props.row.plannedTime.end, this.props.currentTime, true, true)
     let stateClass = null
