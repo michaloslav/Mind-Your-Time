@@ -13,6 +13,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
 import TimeSetter from './TimeSetter'
 import TimeCalc from './util/TimeCalc'
+import makeNewId from './util/makeNewId'
 
 export default class BreaksDrawer extends Component{
   constructor(props){
@@ -70,7 +71,7 @@ export default class BreaksDrawer extends Component{
       breaks[index][propertyId] = val
 
       this.setState({breaks})
-      this.props.onSave(breaks)
+      this.props.onSave(breaks, {breaks: breakId})
     }
   }
 
@@ -108,7 +109,8 @@ export default class BreaksDrawer extends Component{
       let newBreak = this.state.newBreak
       let breakDurations = this.state.breakDurations
 
-      newBreak[propertyId][inputId] = val
+      if(inputId === "object") newBreak[propertyId] = val
+      else newBreak[propertyId][inputId] = val
 
       if(val !== ""){
         if(propertyId === "startTime"){
@@ -129,7 +131,9 @@ export default class BreaksDrawer extends Component{
       let breaks = this.state.breaks
       let breakDurations = this.state.breakDurations
       let index = breaks.findIndex(el => el.id === breakId)
-      breaks[index][propertyId][inputId] = val /// SOMEHOW CHANGES THIS.PROPS.BREAKS
+
+      if(inputId === "object") breaks[index][propertyId] = val
+      else breaks[index][propertyId][inputId] = val
 
       let success = true
 
@@ -152,7 +156,7 @@ export default class BreaksDrawer extends Component{
       let canClose = Object.values(errors).every(x => !x)
 
       this.setState({breaks, errors})
-      this.props.onSave(breaks, canClose)
+      this.props.onSave(breaks, canClose, {breaks: breakId})
     }
   }
 
@@ -162,17 +166,15 @@ export default class BreaksDrawer extends Component{
     let breaks = this.state.breaks
     let newBreak = this.state.newBreak
 
-    // assign an id one bigger than the current biggest one
-    let highestId = -1
-    for(let i = 0; i < breaks.length; i++) if(breaks[i].id > highestId) highestId = breaks[i].id
-    let newId = highestId + 1
+    // make a new unique ID
+    let newId = makeNewId(breaks, "breaks")
 
     newBreak.id = newId
 
     breaks.push(newBreak)
 
     this.setState({breaks})
-    this.props.onSave(breaks)
+    this.props.onSave(breaks, {breaks: newId})
 
     let breakDurations = this.state.breakDurations
     breakDurations.new = 30
@@ -198,7 +200,7 @@ export default class BreaksDrawer extends Component{
     let canClose = Object.values(errors).every(x => !x)
 
     this.setState({breaks, errors})
-    this.props.onSave(breaks, canClose)
+    this.props.onSave(breaks, canClose, {breaks: id})
   }
 
   handleSave = () => {

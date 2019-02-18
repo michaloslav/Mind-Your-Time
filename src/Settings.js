@@ -177,14 +177,14 @@ export default class Settings extends Component{
       }
     }
 
-    this.props.onSettingsChange(inputs)
+    this.props.update({settings: inputs})
     this.props.history.push("/")
   }
 
   handleResetToDefault(){
     if(window.confirm("Are you sure you want to reset your settings back to default?")){
       this.setState({inputs: this.props.defaultSettings})
-      this.props.onSettingsChange(this.props.defaultSettings)
+      this.props.update({settings: this.props.defaultSettings})
     }
   }
 

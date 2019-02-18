@@ -26,7 +26,7 @@ footer{
   font-weight: 300;
 }
 
-footer a{
+a{
   text-decoration: none;
 }
 
@@ -44,18 +44,32 @@ footer a{
   margin: .8rem .4rem;
 }
 
-#linkToSettings, #linkToAbout{
+#linkToSettings, #dropdownMenuButton, #dropdownMenu svg{
+  color: #545454;
+}
+
+#linkToSettings, #dropdownMenuButton{
   position: absolute;
   top: 5rem;
-  color: #545454;
 }
 
 #linkToSettings{
   right: calc(1.4rem + 16px);
 }
 
-#linkToAbout{
-  right: .75rem;
+#dropdownMenuButton{
+  right: 0.05rem;
+  top: 4.3rem;
+  background-color: rgba(0, 0, 0, 0);
+  padding-left: 0;
+}
+
+#dropdownMenu li{
+  padding-left: 14px;
+}
+
+#dropdownMenu svg{
+  padding-right: .2rem;
 }
 
 #ProjectsTable th:first-child, #ProjectsTable td:first-child{
@@ -90,17 +104,20 @@ footer a{
   color: #000000bf;
 }
 
-.timeStatsLabelDiv{
+.timeStatsLabelDiv, #addProjectLabelDiv{
   position: absolute;
 }
 
-.timeStatsLabelDiv label{
+.timeStatsLabelDiv label, #addProjectLabelDiv label{
   position: relative;
   width: 10rem;
-  bottom: 1.25rem;
   color: #000000a3;
   font-size: .8125rem;
   font-weight: 400;
+}
+
+.timeStatsLabelDiv label{
+  bottom: 1.25rem;
 }
 
 .LinkToRoot{
@@ -177,6 +194,15 @@ footer a{
 
 .BreaksDrawer tr:nth-last-child(2) td{
   border-bottom-color: #4848488c;
+}
+
+
+#addProjectLabelDiv label{
+  bottom: .7rem;
+}
+
+#addProjectRow .setNameCell, #addProjectRow .setDurationCell{
+  padding-top: 1rem !important;
 }
 
 /* working */

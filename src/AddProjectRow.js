@@ -13,12 +13,18 @@ export default class AddProjectRow extends Component {
   constructor(props){
     super(props)
 
+    let color
+    if(typeof this.props.defaultColorIndex !== "undefined"){
+      color = this.props.settings.defaultColors[this.props.defaultColorIndex]
+    }
+    else color = "#000000"
+
     this.state = {
       inputValues: {
         name: "",
         duration: "",
         startTime: {h: "", m: "", pm: true},
-        color: this.props.defaultColorIndex ? this.props.settings.defaultColors[this.props.defaultColorIndex] : "#000000"
+        color
       },
       userHasntChangedStartTime: true,
       defaultColorIndex: this.props.defaultColorIndex,
@@ -57,7 +63,8 @@ export default class AddProjectRow extends Component {
     // only used if defaultColorIndex (and startTime) are being initialized with data from the localStorage
     if(typeof this.state.defaultColorIndex === "undefined"
       && typeof this.props.defaultColorIndex !== "undefined"
-      && this.props.settings.defaultColors){
+      && this.props.settings.defaultColors
+    ){
 
       let inputValues = this.state.inputValues
 
@@ -95,7 +102,10 @@ export default class AddProjectRow extends Component {
 
   handleStartTimeChange(id, val){
     let newState = {inputValues: this.state.inputValues, showErrors: this.state.showErrors}
-    newState.inputValues.startTime[id] = val
+
+    if(id === "object") newState.inputValues.startTime = val
+    else newState.inputValues.startTime[id] = val
+
     newState.showErrors["startTime" + id.toUpperCase()] = false
     newState.userHasntChangedStartTime = false
     this.setState(newState)
@@ -153,6 +163,11 @@ export default class AddProjectRow extends Component {
             onChange={this.handleColorChange.bind(this)} />
         </TableCell>
         <TableCell className="setNameCell">
+          <div id="addProjectLabelDiv">
+            <label htmlFor="addProjectNameInput">
+              Add a project:
+            </label>
+          </div>
           <Input
             onChange={this.handleInputChange.bind(this, "name")}
             value={this.state.inputValues["name"]}
@@ -160,6 +175,7 @@ export default class AddProjectRow extends Component {
             aria-label="Name"
             error={this.state.showErrors.name || showErrorProp}
             onKeyPress={this.handleEnterPress}
+            id="addProjectNameInput"
             autoFocus
           />
         </TableCell>

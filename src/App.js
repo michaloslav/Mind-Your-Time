@@ -1,107 +1,88 @@
 import React, { Component } from 'react';
 import ModeSwitch from './ModeSwitch'
 import ProjectsTable from './ProjectsTable'
-import EndTimeSetter from './EndTimeSetter'
+import TimeSetter from './TimeSetter'
 import TimeStats from './TimeStats'
 import BreaksDrawer from './BreaksDrawer'
+import SignInPanel from './SignInPanel'
+import DropdownMenu from './DropdownMenu'
 import Grid from '@material-ui/core/Grid'
 import Button from '@material-ui/core/Button';
 import Drawer from '@material-ui/core/Drawer';
+import Slide from '@material-ui/core/Slide';
 import { Link } from "react-router-dom";
 import SettingsIcon from '@material-ui/icons/Settings';
-import HelpIcon from '@material-ui/icons/Help';
 import TimeCalc, { setTimesForProjects } from './util/TimeCalc'
+import makeNewId from './util/makeNewId'
 import { SettingsContext } from './_Context'
 
 export default class App extends Component {
   constructor(props){
     super(props)
     this.state = {
-      projects: [],
-      breaks: [],
-      mode: "planning",
-      startTime: {},
-      endTime: {
-        h: 11,
-        m: "00",
-        pm: true
-      },
       currentTime: {
         h: 0,
         m: 0,
         pm: true
       },
-      settings: this.props.settings,
       showErrors: {
         endTime: false,
         noProjects: false
       },
       showResetButton: false,
-      defaultColorIndex: undefined,
-      temp: {}
+      temp: {
+        dontShowSignInYet: true
+      }
     }
+
+    // only show the sign in panel after a little while
+    setTimeout(() => {
+      this.setState({temp: {...this.state.temp, dontShowSignInYet: false}})
+    }, 5000)
   }
 
-  componentDidMount(){
-    // get data from localStorage
-    let projects, breaks, startTime, endTime, mode
-
-    // handle undefined, set defaults
-    try {
-      projects = JSON.parse(localStorage.projects)
-    } catch (e) {
-      projects = []
-    }
-
-    try {
-      breaks = JSON.parse(localStorage.breaks)
-    } catch (e) {
-      breaks = []
-    }
-
-    try {
-      startTime = JSON.parse(localStorage.startTime)
-    } catch (e) {
-      startTime = {h: 2, m: "00", pm: true}
-    }
-
-    try {
-      endTime = JSON.parse(localStorage.endTime)
-    } catch (e) {
-      endTime = {h: 9, m: "00", pm: true}
-    }
-
-    try {
-      mode = JSON.parse(localStorage.mode)
-    } catch (e) {
-      mode = "planning"
-    }
-
-    let defaultColorIndex = localStorage.defaultColorIndex ? localStorage.defaultColorIndex : 0
-
-    this.setState({projects, breaks, startTime, endTime, mode, defaultColorIndex})
-  }
-
-  componentDidUpdate(){
-    // only update if it's the init with data from localStorage
-    if(!Object.keys(this.state.settings).length && this.props.settings){
-      this.setState({settings: this.props.settings})
+  componentDidUpdate(prevProps){
+    if(!Object.keys(prevProps.data.settings).length && Object.keys(this.props.data.settings).length){
       this.setShowResetButton()
     }
 
-    // save to localStorage
-    localStorage.projects = JSON.stringify(this.state.projects)
-    localStorage.breaks = JSON.stringify(this.state.breaks)
-    localStorage.startTime = JSON.stringify(this.state.startTime)
-    localStorage.endTime = JSON.stringify(this.state.endTime)
-    localStorage.mode = JSON.stringify(this.state.mode)
-    localStorage.defaultColorIndex = this.state.defaultColorIndex
+    // check if all projects are done
+    let allProjectsDone = false
+    let productivityPercentage, totalTimeWorkedString
 
-    // save the time of the last time when there were no projects (to let the app offer to clear projects after midnight)
-    if(!this.state.projects.length){
-      localStorage.lastReset = new Date()
-      localStorage.removeItem("productivityPercentage")
+    if(this.props.data.projects.length){
+      allProjectsDone = true
+      for(let i = 0; i < this.props.data.projects.length; i++){
+        if(this.props.data.projects[i].state !== "done"){
+          allProjectsDone = false
+          break
+        }
+      }
+
+      if(allProjectsDone){
+        let totalTimeWorked = 0
+
+        for(let i = 0; i < this.props.data.projects.length; i++) totalTimeWorked += parseInt(this.props.data.projects[i].estimatedDuration)
+
+        if(totalTimeWorked >= 60) totalTimeWorkedString = TimeCalc.makeString(TimeCalc.toTimeObject(totalTimeWorked, false), false)
+        else totalTimeWorkedString += " minutes"
+
+        // if the productivityPercentage was already stored, use it
+        if(this.props.data.productivityPercentage){
+          productivityPercentage = this.props.data.productivityPercentage
+        }
+        // else calculate and store it
+        else{
+          let totalTimePassed = TimeCalc.subtractToMinutes(this.state.currentTime, this.props.data.startTime, true)
+          productivityPercentage = Math.round(100 * totalTimeWorked / totalTimePassed)
+        }
+      }
     }
+    else allProjectsDone = false
+
+    if(allProjectsDone !== this.state.allProjectsDone) this.setState({allProjectsDone})
+    if(totalTimeWorkedString !== this.state.totalTimeWorkedString) this.setState({totalTimeWorkedString})
+    if(productivityPercentage !== this.props.data.productivityPercentage) this.props.update({productivityPercentage})
   }
 
   // internal method, used in componentDidMount and componentDidUpdate
@@ -118,7 +99,7 @@ export default class App extends Component {
     if(!condition1){
       // show the reset button if lastReset + showResetButtonAfter > currentTime
       let lastReset = new Date(localStorage.lastReset)
-      let settings = this.state.settings.showResetButtonAfter ? this.state.settings : this.props.settings
+      let settings = this.props.data.settings.showResetButtonAfter ? this.props.data.settings : this.props.data.settings
       let showResetButtonAfter = settings.showResetButtonAfter
       lastReset.setTime(lastReset.getTime() + (showResetButtonAfter * 60 * 60 * 1000))
       condition2 = lastReset < new Date()
@@ -131,12 +112,9 @@ export default class App extends Component {
 
   // internal method, used when auto detecting breaks
   addBreak = (startTime, endTime) => {
-    let breaks = this.state.breaks
+    let breaks = this.props.data.breaks.slice()
 
-    // find the highest id
-    let highestId = -1
     for(let i = 0; i < breaks.length; i++){
-
       // check if the break overlaps with any preexisting breaks
       if(
         (
@@ -171,45 +149,46 @@ export default class App extends Component {
           startTime = breaks[i].endTime
         }
       }
-
-      // looking for the highest ID
-      // (first check if the break wasn't deleted)
-      if(breaks[i] && breaks[i].id > highestId) highestId = breaks[i].id
     }
 
-    // assign an id one bigger than the current biggest one
-    let newId = highestId + 1
+    let newId = makeNewId(breaks, "breaks")
 
     breaks.push({
       id: newId,
-      name: "Auto " + (newId + 1),
+      name: "Auto " + (breaks.length + 1),
       autodetected: true,
       startTime, endTime
     })
 
-    this.setState({breaks})
+    this.props.update({breaks}, {breaks: newId})
     return breaks
   }
 
   handleModeChange(val){
     // don't let the user go into work mode if there isn't an endTime or if projects are empty  (+ show an error)
     if(val === "working"){
-      if(this.state.endTime.h === "" || this.state.endTime.m === ""){
+      if(this.props.data.endTime.h === "" || this.props.data.endTime.m === ""){
         this.setState({showErrors: {...this.state.showErrors, endTime: true}})
         return
       }
-      if(!this.state.projects.length){
+      if(!this.props.data.projects.length){
         this.setState({showErrors: {...this.state.showErrors, noProjects: true}})
         return
       }
     }
 
-    this.setState({mode: val})
+    this.props.update({mode: val})
   }
 
   handleEndTimeChange(id, val){
-    let newState = {endTime: this.state.endTime, showErrors: this.state.showErrors, temp: this.state.temp}
-    newState.endTime[id] = val
+    let endTime = Object.assign({}, this.props.data.endTime)
+    let newState = {
+      showErrors: this.state.showErrors,
+      temp: this.state.temp
+    }
+
+    if(id === "object") endTime = val
+    else endTime[id] = val
 
     // show/hide error
     if(newState.endTime.h === ""
@@ -226,6 +205,7 @@ export default class App extends Component {
     }
 
     this.setState(newState)
+    this.props.update({endTime})
   }
 
   handleAddProject(project, newDefaultColorIndex){
@@ -233,16 +213,11 @@ export default class App extends Component {
     this.setState({showErrors: {...this.state.showErrors, noProjects: false}})
 
     // copy the state
-    let projects = this.state.projects
-    let settings = this.state.settings
+    let projects = this.props.data.projects.slice()
+    let settings = this.props.data.settings
 
-    // find the highest id in projects
-    let highestId = -1
-    for(let i = 0; i < projects.length; i++) if(projects[i].id > highestId) highestId = projects[i].id
-
-    // assign an id one bigger than the current biggest one
-    // (if there are no projects yet then highestId stayed at -1, therefore newId will be 0)
-    let newId = highestId + 1
+    // make a new unique ID
+    let newId = makeNewId(projects, "projects")
 
     // convert
     let newProject = {
@@ -280,12 +255,12 @@ export default class App extends Component {
     if(projects.length === 1) newState.startTime = projects[0].plannedTime.start
 
     // save to state
-    this.setState(newState)
+    this.props.update(newState, {projects: newId})
   }
 
   handleDeleteProject(id){
-    let projects = this.state.projects
-    let settings = this.state.settings
+    let projects = this.props.data.projects.slice()
+    let settings = this.props.data.settings
 
     let index = projects.findIndex(project => project.id === id)
 
@@ -296,42 +271,55 @@ export default class App extends Component {
 
     projects.splice(index, 1)
 
-    if(settings.updateTimesAfterDelete) projects = setTimesForProjects(projects, settings, this.state.breaks, this.state.startTime)
+    if(settings.updateTimesAfterDelete) projects = setTimesForProjects(projects, settings, this.props.data.breaks, this.props.data.startTime)
 
     let newState = {projects}
 
     // if the user just deleted the last remaining project, reset breaks as well
     if(!projects.length) newState.breaks = []
 
-    this.setState(newState)
+    this.props.update(newState, {projects: id})
   }
 
   // switch mode on tab
   handleRootKeyDown(e){
-    if(this.state.settings.changeModeOnTab && e.key === "Tab" && !this.state.temp.openBreaksDrawer){
+    if(this.props.data.settings.changeModeOnTab && e.key === "Tab" && !this.state.temp.openBreaksDrawer){
       e.preventDefault()
 
-      this.handleModeChange(this.state.mode === "planning" ? "working" : "planning")
+      this.handleModeChange(this.props.data.mode === "planning" ? "working" : "planning")
     }
   }
 
   handleColorChange(id, val){
-    let projects = this.state.projects
+    let projects = this.props.data.projects.slice()
+
     let index = projects.findIndex(project => project.id === id)
-    projects[index].color = val
-    this.setState({projects})
+
+    // break the reference
+    let changedProject = Object.assign({}, projects[index])
+    projects.splice(index, 1)
+
+    changedProject.color = val
+
+    projects.splice(index, 0, changedProject)
+
+    this.props.update({projects}, {projects: id})
   }
 
   handleDragEnd(result){
     this.setState({temp: {...this.state.temp, dragging: false}})
 
-    if(!result.destination) console.log(result);
     // handle the draggable being drop outside the droppable
     if(!result.destination) return
 
     let id = result.draggableId
     let index = result.destination.index
-    let projects = this.state.projects
+    let projects = []
+    this.props.data.projects.forEach(project => {
+      let copy = Object.assign({}, project)
+      copy.plannedTime = JSON.parse(JSON.stringify(project.plannedTime))
+      projects.push(copy)
+    })
 
     let movedProjectIndex = projects.findIndex(el => el.id === parseInt(id))
     let movedProject = projects[movedProjectIndex]
@@ -349,28 +337,44 @@ export default class App extends Component {
     // add to the new position
     projects.splice(index, 0, movedProject)
 
-    if(this.state.settings.updateTimesAfterDrag){
+    if(this.props.data.settings.updateTimesAfterDrag){
       projects[0].plannedTime.start = firstStartTime
 
-      projects = setTimesForProjects(projects, this.state.settings, this.state.breaks, this.state.startTime)
+      projects = setTimesForProjects(projects, this.props.data.settings, this.props.data.breaks, this.props.data.startTime)
     }
 
     // save
-    this.setState({projects})
+    this.props.update({projects})
   }
 
   handleDoneEditingProject(id, values){
-    let projects = this.state.projects
-    let breaks = this.state.breaks
-    let settings = this.state.settings
+    let projects = this.props.data.projects.slice()
+    let breaks = this.props.data.breaks
+    let settings = this.props.data.settings
 
     let index = projects.findIndex(project => project.id === id)
+
+    // break the reference (keep the reference for plannedTime if it hasn't changed)
+    let changedProject = {}
+    Object.keys(projects[index]).forEach(key => {
+      changedProject[key] = projects[index][key]
+    })
+
+    // if we're changing something about the timing, break the reference to plannedTime too
+    if(
+      changedProject.estimatedDuration !== values.duration ||
+      !TimeCalc.areIdentical(changedProject.plannedTime.start, values.startTime)
+    ){
+      changedProject.plannedTime = Object.assign({}, changedProject.plannedTime)
+    }
+
+    projects.splice(index, 1) // breaking the reference pt. 2
 
     // if the user increased the startTime, save a new break
     if(
       settings.detectBreaksAutomatically &&
       index !== 0 &&
-      TimeCalc.isBiggerThan(values.startTime, projects[index].plannedTime.start, false, true)
+      TimeCalc.isBiggerThan(values.startTime, changedProject.plannedTime.start, false, true)
     ){
       breaks = this.addBreak(
         TimeCalc.suggestStartTime(projects[index - 1].plannedTime.end, projects[index - 1].estimatedDuration, settings),
@@ -382,13 +386,13 @@ export default class App extends Component {
     if(
       settings.detectBreaksAutomatically &&
       index !== 0 &&
-      TimeCalc.isBiggerThan(projects[index].plannedTime.start, values.startTime, false, true)
+      TimeCalc.isBiggerThan(changedProject.plannedTime.start, values.startTime, false, true)
     ){
       for(let i = 0; i < breaks.length; i++){
         // if an autodetected break was previously right before the project being editted, adjust it
         if(
           breaks[i].autodetected &&
-          TimeCalc.areIdentical(projects[index].plannedTime.start, breaks[i].endTime)
+          TimeCalc.areIdentical(changedProject.plannedTime.start, breaks[i].endTime)
         ){
           breaks[i].endTime = values.startTime
         }
@@ -396,55 +400,84 @@ export default class App extends Component {
     }
 
     // check if any time values were changed (so that we don't unnecessarily recalculate project times)
-    let durationChanged = parseInt(projects[index].estimatedDuration) !== parseInt(values.duration)
-    let startTimeChanged = !TimeCalc.areIdentical(projects[index].plannedTime.start, values.startTime)
+    let durationChanged = parseInt(changedProject.estimatedDuration) !== parseInt(values.duration)
+    let startTimeChanged = !TimeCalc.areIdentical(changedProject.plannedTime.start, values.startTime)
 
     // change the values
-    projects[index].name = values.name
-    projects[index].estimatedDuration = values.duration
-    projects[index].plannedTime.start = values.startTime
+    changedProject.name = values.name
+    changedProject.estimatedDuration = values.duration
+    changedProject.plannedTime.start = values.startTime
+
+    // insert the changedProject back into the array
+    projects.splice(index, 0, changedProject)
+
+    let changes // what was modified
 
     // if the user wants to update all times, do so
-    if(this.state.settings.updateTimesAfterEdit && (durationChanged || startTimeChanged)){
-      let startTime = index === 0 ? values.startTime : this.state.startTime
+    if(this.props.data.settings.updateTimesAfterEdit && (durationChanged || startTimeChanged)){
+      // break the references of all projects after the one that was changed (their times will be changed)
+      for(let i = index + 1; i < projects.length; i++){
+        projects[i] = Object.assign({}, projects[i])
+        projects[i].plannedTime = Object.assign({}, projects[i].plannedTime)
+      }
+
+      let startTime = index === 0 ? values.startTime : Object.assign({}, this.props.data.startTime)
       projects = setTimesForProjects(projects, settings, breaks, startTime)
     }
 
     // else simply adjust the endTime
-    else projects[index].plannedTime.end = TimeCalc.add(projects[index].plannedTime.start, projects[index].estimatedDuration)
+    else{
+      changes = {projects: id}
+      projects[index].plannedTime.end = TimeCalc.add(projects[index].plannedTime.start, projects[index].estimatedDuration)
+    }
 
     // create the newState object
     let newState = {projects}
 
-    // if the startTime of the first project was changed, adjust this.state.startTime accordingly
-    if(index === 0) newState.startTime = projects[index].plannedTime.start
+    // if the startTime of the first project was changed, adjust this.props.data.startTime accordingly
+    if(index === 0 && !TimeCalc.areIdentical(this.props.data.startTime, changedProject.plannedTime.start)){
+      newState.startTime = changedProject.plannedTime.start
+    }
 
     // save to state
-    this.setState(newState)
+    this.props.update(newState, changes)
   }
 
   handleProjectStateChange(id, val, progress){
-    let projects = this.state.projects
+    let projects = this.props.data.projects.slice()
 
-    projects.map(project => {
-      // set the state of the changed project
-      if(project.id === id){
-        project.state = val
+    let index = projects.findIndex(project => project.id === id)
 
-        // if it's being paused, set progress
-        if(val === "paused" && !isNaN(parseInt(progress))) project.progress = progress
+    // break the reference
+    let changedProject = Object.assign({}, projects[index])
+    projects.splice(index, 1)
 
-        // if it's being changed to workingOnIt, save current time
-        if(val === "workingOnIt") project.startedWorkingOnIt = this.state.currentTime
+    // set the state of the changed project
+    changedProject.state = val
+
+    // if it's being paused, set progress
+    if(val === "paused" && !isNaN(parseInt(progress))) changedProject.progress = progress
+
+    // if it's being changed to workingOnIt, save current time
+    if(val === "workingOnIt") changedProject.startedWorkingOnIt = this.state.currentTime
+
+    let changes = {projects: [id]}
+
+    // loop through the other projects
+    // if the project's state is being changed to workingOnIt, pause any other projects with the same state
+    projects.map((project, i) => {
+      if(val === "workingOnIt" && project.state === "workingOnIt" && project.id !== id){
+        projects[i] = {...project, state: "paused"} // break the reference
+        changes.projects.push(project.id)
+        return projects[i]
       }
-
-      // if a project's state is being changed to workingOnIt, pause any other projects with the same state
-      if(val === "workingOnIt" && project.state === "workingOnIt" && project.id !== id) project.state = "paused"
 
       return project
     })
 
-    this.setState({projects})
+    projects.splice(index, 0, changedProject)
+
+    this.props.update({projects}, changes)
   }
 
   handleCurrentTimeChange(time){
@@ -453,15 +486,12 @@ export default class App extends Component {
 
   resetState(){
     if(window.confirm("Are you sure you want to delete all your projects?")){
-      this.setState({projects: [], breaks: [], mode: "planning", showResetButton: false})
+      this.props.update({projects: [], breaks: [], mode: "planning", showResetButton: false, productivityPercentage: undefined})
     }
   }
 
   handleEndTimeValidation(success){
-    let showErrors = this.state.showErrors
-    showErrors.endTime = success
-    this.setState({showErrors})
-    console.log({showErrors: {...this.state.showErrors, endTime:success}});
+    this.setState({showErrors: {...this.state.showErrors, endTime:success}})
   }
 
   openBreaksDrawer(){
@@ -475,58 +505,41 @@ export default class App extends Component {
     ) this.setState({temp: {...this.state.temp, openBreaksDrawer: false, canCloseBreaksDrawer: undefined}})
   }
 
-  saveBreaks(breaks, canClose){
+  saveBreaks(breaks, canClose, changes){
     if(typeof canClose === "undefined" || canClose){
-      let projects = this.state.projects
-      if(this.state.projects.length){
-        projects = setTimesForProjects(projects, this.state.settings, breaks, this.state.startTime)
+      let projects = this.props.data.projects.slice()
+      if(this.props.data.projects.length){
+        projects = setTimesForProjects(projects, this.props.data.settings, breaks, this.props.data.startTime)
       }
 
       let temp = this.state.temp
       if(typeof canClose !== "undefined") temp.canCloseBreaksDrawer = canClose
 
-      this.setState({projects, breaks: JSON.parse(JSON.stringify(breaks)), temp})
+      this.setState({temp})
+      this.props.update({projects, breaks: JSON.parse(JSON.stringify(breaks))}, changes)
     }
     else this.setState({temp: {...this.state.temp, canCloseBreaksDrawer: false}})
   }
 
+  handleSignInDismiss = () => {
+    this.setState({temp: {...this.state.temp, signInDissmissed: true}})
+    localStorage.userHasDismissedSignInBefore = true
+
+    // show the panel again in 30 minutes
+    setTimeout(() => {
+      this.setState({temp: {...this.state.temp, signInDissmissed: null}})
+    }, 30*60*1000)
+  }
+
+  handleSignInDontRemindMeAgain = () => {
+    this.setState({temp: {...this.state.temp, signInDissmissed: null}})
+    localStorage.removeItem("userHasDismissedSignInBefore")
+    localStorage.dontShowSignInPanelAgain = true
+  }
+
   render() {
-    // speed up the load (wouldn't make sense to do all the processing if there are no projects)
-    let allProjectsDone = false
-    let productivityPercentage, totalTimeWorkedString
-
-    if(this.state.projects.length){
-      allProjectsDone = true
-      for(let i = 0; i < this.state.projects.length; i++){
-        if(this.state.projects[i].state !== "done"){
-          allProjectsDone = false
-          break
-        }
-      }
-
-      if(allProjectsDone){
-        let totalTimeWorked = 0
-
-        for(let i = 0; i < this.state.projects.length; i++) totalTimeWorked += parseInt(this.state.projects[i].estimatedDuration)
-
-        if(totalTimeWorked >= 60) totalTimeWorkedString = TimeCalc.makeString(TimeCalc.toTimeObject(totalTimeWorked, false), false)
-        else totalTimeWorkedString += " minutes"
-
-        // if the productivityPercentage was already stored, use it
-        if(localStorage.productivityPercentage){
-          productivityPercentage = localStorage.productivityPercentage
-        }
-        // else calculate and store it
-        else {
-          let totalTimePassed = TimeCalc.subtractToMinutes(this.state.currentTime, this.state.startTime, true)
-          productivityPercentage = Math.round(100 * totalTimeWorked / totalTimePassed)
-          localStorage.productivityPercentage = productivityPercentage
-        }
-      }
-
-      else localStorage.removeItem("productivityPercentage")
-    }
-    else allProjectsDone = false
+    let {allProjectsDone, totalTimeWorkedString} = this.state
+    let productivityPercentage = this.props.data.productivityPercentage
 
     return (
       <Grid
@@ -534,25 +547,25 @@ export default class App extends Component {
         onKeyDown={this.handleRootKeyDown.bind(this)}
         tabIndex="0">
         <ModeSwitch
-          mode={this.state.mode}
+          mode={this.props.data.mode}
           onModeChange={this.handleModeChange.bind(this)}>
           <TimeStats
             currentTime={this.state.currentTime}
             onCurrentTimeChange={this.handleCurrentTimeChange.bind(this)}
-            endTime={this.state.endTime}
-            projects={this.state.projects}
-            breaks={this.state.breaks}
-            settings={this.state.settings}
+            endTime={this.props.data.endTime}
+            projects={this.props.data.projects}
+            breaks={this.props.data.breaks}
+            settings={this.props.data.settings}
           />
         </ModeSwitch>
         <Grid container>
-          <SettingsContext.Provider value={this.state.settings}>
+          <SettingsContext.Provider value={this.props.data.settings}>
             <ProjectsTable
-              mode={this.state.mode}
-              projects={this.state.projects}
-              settings={this.state.settings}
+              mode={this.props.data.mode}
+              projects={this.props.data.projects}
+              settings={this.props.data.settings}
               currentTime={this.state.currentTime}
-              defaultColorIndex={this.state.defaultColorIndex}
+              defaultColorIndex={this.props.data.defaultColorIndex}
               showErrors={this.state.showErrors}
               onColorChange={this.handleColorChange.bind(this)}
               onDoneEditing={this.handleDoneEditingProject.bind(this)}
@@ -561,14 +574,21 @@ export default class App extends Component {
               onDeleteProject={this.handleDeleteProject.bind(this)}
               onDragEnd={this.handleDragEnd.bind(this)}/>
             {
-              this.state.mode === "planning" ?
+              this.props.data.mode === "planning" ?
               // planning mode
               (
                 <React.Fragment>
-                  <EndTimeSetter
-                    onChange={this.handleEndTimeChange.bind(this)}
-                    value={this.state.endTime}
-                    showError={this.state.showErrors.endTime}/>
+                  <div id="setEndTime">
+                    <label htmlFor="endTimeHoursInput">
+                      Time when you want to stop working:
+                    </label>
+                    <TimeSetter
+                      onChange={this.handleEndTimeChange.bind(this)}
+                      value={this.props.data.endTime}
+                      firstInputId="endTimeHoursInput"
+                      showError={this.state.showErrors.endTime}
+                    />
+                  </div>
                   <Grid container justify="center">
                     <Button
                       onClick={this.openBreaksDrawer.bind(this)}
@@ -587,7 +607,7 @@ export default class App extends Component {
                   </Grid>
                   <Drawer id="BreaksDrawer" anchor="bottom" open={this.state.temp.openBreaksDrawer} onClose={this.closeBreaksDrawer}>
                     <BreaksDrawer
-                      breaks={this.state.breaks}
+                      breaks={this.props.data.breaks}
                       currentTime={this.state.currentTime}
                       onSave={this.saveBreaks.bind(this)}
                       onClose={this.closeBreaksDrawer}
@@ -606,7 +626,13 @@ export default class App extends Component {
                     <br/>
                     You got {totalTimeWorkedString} worth of work done
                     <br/>
-                    You were productive {productivityPercentage}% of the time
+                    {
+                      productivityPercentage >= 0 && productivityPercentage <= 100 &&(
+                        <span>
+                          You were productive {productivityPercentage}% of the time
+                        </span>
+                      )
+                    }
                   </div>
                 )
               )
@@ -625,9 +651,29 @@ export default class App extends Component {
         <Link id="linkToSettings" to="/settings" aria-label="Settings" title="Settings">
           <SettingsIcon />
         </Link>
-        <Link id="linkToAbout" to="/about" aria-label="About" title="About">
-          <HelpIcon />
-        </Link>
+        <Slide
+          direction="right"
+          in={
+            !this.props.loggedIn &&
+            !this.state.temp.dontShowSignInYet &&
+            !this.state.temp.signInDissmissed &&
+            !localStorage.dontShowSignInPanelAgain
+          }
+          mountOnEnter unmountOnExit
+        >
+          <SignInPanel
+            connect={this.props.connect}
+            dismiss={this.handleSignInDismiss}
+            showDontRemindMeAgain={localStorage.userHasDismissedSignInBefore}
+            dontRemindMeAgain={this.handleSignInDontRemindMeAgain}
+          />
+        </Slide>
+        <DropdownMenu
+          connect={this.props.connect}
+          disconnect={this.props.disconnect}
+          history={this.props.history}
+          loggedIn={this.props.loggedIn}
+        />
       </Grid>
     );
   }

@@ -1,30 +1,34 @@
 export default class TimeCalc {
   static toMinutesSinceMidnight(time, keepPositiveIfCrossingMidnight = false){
+    let result
 
-    // if the argument is a number, simply return it
-    if(typeof time === "number") return time
-    // if it's a string, try to parse it
-    if(typeof time === "string"){
-      let parsedTime = parseInt(time)
-      if(!isNaN(parsedTime)) return parsedTime
-      else{
+    switch(typeof time){
+      // if it's a number, simply return it
+      case "number":
+        result = time
+        break;
+      // if it's a string, try to parse it
+      case "string":
+        result = parseInt(time)
+        if(isNaN(result)){
+          console.warn("Unexpected input: ", time)
+          return
+        }
+        break;
+      case "object":
+        // handle time.h === 12
+        let parsedH = parseInt(time.h)
+        if(parsedH === 12) parsedH -= 12
+
+        result = parsedH * 60 + parseInt(time.m)
+        if(time.pm) result += 12 * 60
+
+        break;
+      // if the typeof is none of the above, throw a warning
+      default:
         console.warn("Unexpected input: ", time)
         return
-      }
     }
-
-    // else assume it's an object (if not, throw a warning)
-    if(typeof time !== "object"){
-      console.warn("Unexpected input: ", time)
-      return
-    }
-
-    // handle time.h === 12
-    let parsedH = parseInt(time.h)
-    if(parsedH === 12) parsedH -= 12
-
-    let result = parsedH * 60 + parseInt(time.m)
-    if(time.pm) result += 12 * 60
 
     if(keepPositiveIfCrossingMidnight &&
       this.isBiggerThan(time, 0, true) &&

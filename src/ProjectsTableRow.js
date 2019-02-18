@@ -54,7 +54,10 @@ export default class ProjectsTableRow extends Component {
 
   handleStartTimeChange(id, val){
     let newState = {values: this.state.values, showErrors: this.state.showErrors}
-    newState.values.startTime[id] = val
+
+    if(id === "object") newState.values.startTime = val
+    else newState.values.startTime[id] = val
+
     newState.showErrors["startTime" + id.toUpperCase()] = false
     this.setState(newState)
   }

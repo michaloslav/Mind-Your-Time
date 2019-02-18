@@ -61,8 +61,7 @@ export default class TimeSetter extends Component {
     if(!action) return
 
     // get the value, handle empty input
-    let val, previousVal
-    val = previousVal = this.props.value
+    let val = this.props.value
     if(!val || isNaN(val.m)) val = 0
 
     // edit the val
@@ -73,10 +72,7 @@ export default class TimeSetter extends Component {
     // handle negative values
     if(TimeCalc.isBiggerThan(0, val, false)) val = TimeCalc.add(val, 24*60)
 
-    // loop through the object keys, emit any changes up the chain
-    Object.keys(val).forEach(key => {
-      if(previousVal[key] !== val[key]) this.props.onChange(key, val[key])
-    })
+    this.props.onChange("object", val)
   }
 
   render(){

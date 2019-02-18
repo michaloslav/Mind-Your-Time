@@ -49,9 +49,11 @@ export default class TimeStats extends Component {
       this.props.projects.forEach((project, i) => {
         if(project.state !== "done"){
           let durationLeft = parseInt(project.estimatedDuration)
-          if(project.progress){
-            if(project.progress > project.estimatedDuration) durationLeft = 0
-            else durationLeft-= parseInt(project.progress)
+
+          let progress = parseInt(project.progress)
+          if(progress){
+            if(progress > project.estimatedDuration) durationLeft = 0
+            else durationLeft -= progress
           }
           if(project.state === "workingOnIt" && project.startedWorkingOnIt){
             durationLeft -= TimeCalc.subtractToMinutes(this.props.currentTime, project.startedWorkingOnIt, true)
@@ -63,18 +65,19 @@ export default class TimeStats extends Component {
           }
 
           totalProjectTime += durationLeft
+
         }
       })
       // round totalProjectTime according to settings
       totalProjectTime = Math.round(totalProjectTime / this.props.settings.roundTo) * this.props.settings.roundTo
 
       totalBreakTime = 0
-      this.props.breaks.forEach(el => {
+      for(let el of this.props.breaks){
         let endTime = TimeCalc.toMinutesSinceMidnight(el.endTime, true)
         let currentTime = TimeCalc.toMinutesSinceMidnight(this.props.currentTime, true)
 
         // if the break has already passed, don't count it in
-        if(TimeCalc.isBiggerThan(currentTime, endTime, false)) return
+        if(TimeCalc.isBiggerThan(currentTime, endTime, false)) continue
 
         let startTime = TimeCalc.toMinutesSinceMidnight(el.startTime, true)
 
@@ -84,7 +87,7 @@ export default class TimeStats extends Component {
         }
         // if the break has started and is currently going on
         else totalBreakTime += TimeCalc.subtractToMinutes(endTime, currentTime, true)
-      })
+      }
       // round totalBreakTime according to settings
       totalBreakTime = Math.round(totalBreakTime / this.props.settings.roundTo) * this.props.settings.roundTo
 
@@ -92,7 +95,7 @@ export default class TimeStats extends Component {
       timeRemaining = TimeCalc.subtract(this.props.endTime, this.props.currentTime, true)
 
       // figure out which warnings to show
-      timeNeededWarning = TimeCalc.isBiggerThan(timeNeeded, timeRemaining)
+      timeNeededWarning = TimeCalc.isBiggerThan(timeNeeded, timeRemaining, false, false)
       timeRemainingNegative = !TimeCalc.isBiggerThan(timeRemaining, 0)
       timeRemainingWarning = timeRemainingNegative && this.props.endTime.h !== "" && this.props.endTime.m !== ""
     }

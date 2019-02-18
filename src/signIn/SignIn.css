@@ -1,0 +1,22 @@
+.signInPanel{
+  position: absolute;
+  bottom: 2.5rem;
+  width: calc(100% - 2rem);
+  background-image: radial-gradient(#67bfaf4d, #5ac3c363);
+}
+
+.signInPanel, .signInPanelContainer{
+  height: 5rem;
+  border-radius: 1rem;
+}
+
+.signInPanelContainer{
+  background-image: radial-gradient(#ffffff40, #ffffff59)
+}
+
+.signInPanel .dismissButton{
+  position: absolute;
+  top: -.5rem;
+  right: -.5rem;
+  background-color: rgba(0, 0, 0, 0) !important;
+}
