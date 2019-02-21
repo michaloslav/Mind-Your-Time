@@ -12,6 +12,8 @@ import Drawer from '@material-ui/core/Drawer';
 import Slide from '@material-ui/core/Slide';
 import { Link } from "react-router-dom";
 import SettingsIcon from '@material-ui/icons/Settings';
+import PauseIcon from '@material-ui/icons/Pause';
+import StartIcon from '@material-ui/icons/PlayArrow';
 import TimeCalc, { setTimesForProjects } from './util/TimeCalc'
 import makeNewId from './util/makeNewId'
 import { SettingsContext } from './_Context'
@@ -191,9 +193,9 @@ export default class App extends Component {
     else endTime[id] = val
 
     // show/hide error
-    if(newState.endTime.h === ""
-      || newState.endTime.m === ""
-      || TimeCalc.isBiggerThan(this.state.currentTime, newState.endTime, true, true)
+    if(endTime.h === ""
+      || endTime.m === ""
+      || TimeCalc.isBiggerThan(this.state.currentTime, endTime, true, true)
     ){
       newState.temp.endTimeErrorTimeout = setTimeout(() => {
         this.setState({showErrors: {...this.state.showErrors, endTime: true}})
@@ -203,6 +205,8 @@ export default class App extends Component {
       clearTimeout(newState.temp.endTimeErrorTimeout)
       newState.showErrors.endTime = false
     }
+
+    newState.endTime = endTime
 
     this.setState(newState)
     this.props.update({endTime})
@@ -486,7 +490,13 @@ export default class App extends Component {
 
   resetState(){
     if(window.confirm("Are you sure you want to delete all your projects?")){
-      this.props.update({projects: [], breaks: [], mode: "planning", showResetButton: false, productivityPercentage: undefined})
+      this.props.update({
+        projects: [],
+        breaks: [],
+        mode: "planning",
+        productivityPercentage: undefined
+      })
+      this.setState({showResetButton: false})
     }
   }
 
@@ -589,21 +599,25 @@ export default class App extends Component {
                       showError={this.state.showErrors.endTime}
                     />
                   </div>
-                  <Grid container justify="center">
-                    <Button
-                      onClick={this.openBreaksDrawer.bind(this)}
-                      variant="contained"
-                      style={{marginBottom: "1rem"}}>
-                      Set/Edit breaks
-                    </Button>
-                  </Grid>
-                  <Grid container justify="center">
-                    <Button
-                      onClick={this.handleModeChange.bind(this, "working")}
-                      variant="contained"
-                      color="primary">
-                      Let's get to work!
-                    </Button>
+                  <Grid container justify="space-evenly">
+                    <Grid>
+                      <Button
+                        onClick={this.openBreaksDrawer.bind(this)}
+                        /*variant="contained"*/
+                        style={{marginBottom: "1rem"}}>
+                        <PauseIcon color="primary" />
+                        Set/Edit breaks
+                      </Button>
+                    </Grid>
+                    <Grid>
+                      <Button
+                        onClick={this.handleModeChange.bind(this, "working")}
+                        variant="contained"
+                        color="primary">
+                        <StartIcon />
+                        Let's get to work!
+                      </Button>
+                    </Grid>
                   </Grid>
                   <Drawer id="BreaksDrawer" anchor="bottom" open={this.state.temp.openBreaksDrawer} onClose={this.closeBreaksDrawer}>
                     <BreaksDrawer

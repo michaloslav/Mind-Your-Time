@@ -16,9 +16,9 @@ export default class TimeCalc {
         }
         break;
       case "object":
-        // handle time.h === 12
+        // handle time.h === 12 (only if pm is set - allows us to count with an amout of time too)
         let parsedH = parseInt(time.h)
-        if(parsedH === 12) parsedH -= 12
+        if(parsedH === 12 && "pm" in time) parsedH -= 12
 
         result = parsedH * 60 + parseInt(time.m)
         if(time.pm) result += 12 * 60

@@ -173,9 +173,9 @@ export default class DataSync extends Component{
       return
     }
 
-    let {projects, breaks, settings, startTime, endTime, mode, defaultColorIndex, lastModified} = this.state
+    let {projects, breaks, settings, startTime, endTime, mode, defaultColorIndex, lastReset, lastModified} = this.state
 
-    let localData = {projects, breaks, settings, startTime, endTime, mode, defaultColorIndex, lastModified}
+    let localData = {projects, breaks, settings, startTime, endTime, mode, defaultColorIndex, lastReset, lastModified}
     if(this.state.productivityPercentage) localData.productivityPercentage = this.state.productivityPercentage
 
     this.idToken = idToken
