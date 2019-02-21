@@ -4,9 +4,9 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
-import PermIdentityIcon from '@material-ui/icons/PermIdentity';
 import CloseIcon from '@material-ui/icons/Close';
 import HelpIcon from '@material-ui/icons/Help';
+import GoogleIcon from './signIn/GoogleIcon'
 
 export default class DropdownMenu extends Component{
   constructor(props){
@@ -25,6 +25,11 @@ export default class DropdownMenu extends Component{
   about = () => {
     this.close()
     this.props.history.push("/about")
+  }
+
+  signIn = tokenId => {
+    this.close()
+    this.props.connect(tokenId)
   }
 
   signOut = () => {
@@ -62,9 +67,9 @@ export default class DropdownMenu extends Component{
                 Sign Out
               </MenuItem>
             ) : (
-              <GoogleSignIn connect={this.props.connect} render={renderProps => (
+              <GoogleSignIn connect={this.signIn} render={renderProps => (
                 <MenuItem onClick={renderProps.onClick}>
-                  <PermIdentityIcon />
+                  <GoogleIcon />
                   Sign In
                 </MenuItem>
               )} />
