@@ -72,12 +72,18 @@ a{
   padding-right: .2rem;
 }
 
-#ProjectsTable th:first-child, #ProjectsTable td:first-child{
+#ProjectsTable th:first-child,
+#ProjectsTable td:first-child,
+.DefaultProjectsDrawer th:first-child,
+.DefaultProjectsDrawer td:first-child{
   width: 3rem;
   padding: 0;
 }
 
-#ProjectsTable th:last-child, #ProjectsTable td:last-child{
+#ProjectsTable th:last-child,
+#ProjectsTable td:last-child,
+.DefaultProjectsDrawer th:last-child,
+.DefaultProjectsDrawer td:last-child{
   width: 6rem;
   padding: 0;
 }
@@ -192,8 +198,8 @@ a{
   border-radius: 6px;
 }
 
-#editBreaksButton:hover{
-  background-color: rgba(3, 155, 229, 0.08)
+.planningSecondaryButton:hover{
+  background-color: rgba(3, 155, 229, 0.08) !important;
 }
 
 .BreaksDrawer tr:last-child td{

@@ -4,6 +4,7 @@ import ProjectsTable from './ProjectsTable'
 import TimeSetter from './TimeSetter'
 import TimeStats from './TimeStats'
 import BreaksDrawer from './BreaksDrawer'
+import DefaultProjectsDrawer from './DefaultProjectsDrawer'
 import SignInPanel from './SignInPanel'
 import DropdownMenu from './DropdownMenu'
 import Grid from '@material-ui/core/Grid'
@@ -14,6 +15,7 @@ import { Link } from "react-router-dom";
 import SettingsIcon from '@material-ui/icons/Settings';
 import PauseIcon from '@material-ui/icons/Pause';
 import StartIcon from '@material-ui/icons/PlayArrow';
+import AutorenewIcon from '@material-ui/icons/Autorenew';
 import TimeCalc, { setTimesForProjects } from './util/TimeCalc'
 import makeNewId from './util/makeNewId'
 import { SettingsContext } from './_Context'
@@ -212,12 +214,12 @@ export default class App extends Component {
     this.props.update({endTime})
   }
 
-  handleAddProject(project, newDefaultColorIndex){
+  handleAddProject(arrayId, project, newDefaultColorIndex){
     // hide the noProjects error
     this.setState({showErrors: {...this.state.showErrors, noProjects: false}})
 
     // copy the state
-    let projects = this.props.data.projects.slice()
+    let projects = this.props.data[arrayId].slice()
     let settings = this.props.data.settings
 
     // make a new unique ID
@@ -252,18 +254,21 @@ export default class App extends Component {
 
     // create the newState object , handle undefined for newDefaultColorIndex
     projects.push(newProject)
-    let newState = {projects}
-    if(newDefaultColorIndex) newState.defaultColorIndex = newDefaultColorIndex
+    let newState = {[arrayId]: projects}
+    if(newDefaultColorIndex){
+      let defaultColorIndexKey = arrayId === "projects" ? "defaultColorIndex" : "defaultColorIndexDefaultProjects"
+      newState[defaultColorIndexKey] = newDefaultColorIndex
+    }
 
     // if it's the first project being added, save the startTime as well
     if(projects.length === 1) newState.startTime = projects[0].plannedTime.start
 
     // save to state
-    this.props.update(newState, {projects: newId})
+    this.props.update(newState, {[arrayId]: newId})
   }
 
-  handleDeleteProject(id){
-    let projects = this.props.data.projects.slice()
+  handleDeleteProject(arrayId, id){
+    let projects = this.props.data[arrayId].slice()
     let settings = this.props.data.settings
 
     let index = projects.findIndex(project => project.id === id)
@@ -277,15 +282,15 @@ export default class App extends Component {
 
     if(settings.updateTimesAfterDelete) projects = setTimesForProjects(projects, settings, this.props.data.breaks, this.props.data.startTime)
 
-    let newState = {projects}
+    let newState = {[arrayId]: projects}
 
     // if the user just deleted the last remaining project, reset breaks as well
     if(!projects.length) newState.breaks = []
 
-    this.props.update(newState, {projects: id})
+    this.props.update(newState, {[arrayId]: id})
   }
 
-  // switch mode on tab
+  // switch mode on Tab press
   handleRootKeyDown(e){
     if(this.props.data.settings.changeModeOnTab && e.key === "Tab" && !this.state.temp.openBreaksDrawer){
       e.preventDefault()
@@ -294,8 +299,8 @@ export default class App extends Component {
     }
   }
 
-  handleColorChange(id, val){
-    let projects = this.props.data.projects.slice()
+  handleColorChange(arrayId, id, val){
+    let projects = this.props.data[arrayId].slice()
 
     let index = projects.findIndex(project => project.id === id)
 
@@ -307,10 +312,10 @@ export default class App extends Component {
 
     projects.splice(index, 0, changedProject)
 
-    this.props.update({projects}, {projects: id})
+    this.props.update({[arrayId]: projects}, {projects: id})
   }
 
-  handleDragEnd(result){
+  handleDragEnd(arrayId, result){
     this.setState({temp: {...this.state.temp, dragging: false}})
 
     // handle the draggable being drop outside the droppable
@@ -319,7 +324,7 @@ export default class App extends Component {
     let id = result.draggableId
     let index = result.destination.index
     let projects = []
-    this.props.data.projects.forEach(project => {
+    this.props.data[arrayId].forEach(project => {
       let copy = Object.assign({}, project)
       copy.plannedTime = JSON.parse(JSON.stringify(project.plannedTime))
       projects.push(copy)
@@ -348,11 +353,11 @@ export default class App extends Component {
     }
 
     // save
-    this.props.update({projects})
+    this.props.update({[arrayId]: projects})
   }
 
-  handleDoneEditingProject(id, values){
-    let projects = this.props.data.projects.slice()
+  handleDoneEditingProject(arrayId, id, values){
+    let projects = this.props.data[arrayId].slice()
     let breaks = this.props.data.breaks
     let settings = this.props.data.settings
 
@@ -431,12 +436,12 @@ export default class App extends Component {
 
     // else simply adjust the endTime
     else{
-      changes = {projects: id}
+      changes = {[arrayId]: id}
       projects[index].plannedTime.end = TimeCalc.add(projects[index].plannedTime.start, projects[index].estimatedDuration)
     }
 
     // create the newState object
-    let newState = {projects}
+    let newState = {[arrayId]: projects}
 
     // if the startTime of the first project was changed, adjust this.props.data.startTime accordingly
     if(index === 0 && !TimeCalc.areIdentical(this.props.data.startTime, changedProject.plannedTime.start)){
@@ -505,15 +510,11 @@ export default class App extends Component {
     this.setState({showErrors: {...this.state.showErrors, endTime:success}})
   }
 
-  openBreaksDrawer(){
-    this.setState({temp: {...this.state.temp, openBreaksDrawer: true}})
-  }
-
-  closeBreaksDrawer = () => {
-    if(typeof this.state.temp.canCloseBreaksDrawer === "undefined" ||
-      this.state.temp.canCloseBreaksDrawer ||
-      window.confirm("Some of the breaks weren't editted properly. If you close this now, those changes will be lost")
-    ) this.setState({temp: {...this.state.temp, openBreaksDrawer: false, canCloseBreaksDrawer: undefined}})
+  closeDrawer = (drawerName, dataLabel) => {
+    if(typeof this.state.temp["canClose" + drawerName] === "undefined" ||
+      this.state.temp["canClose" + drawerName] ||
+      window.confirm(`Some of the ${dataLabel} weren't editted properly. If you close this now, those changes will be lost`)
+    ) this.setState({temp: {...this.state.temp, ["open" + drawerName]: false, ["canClose" + drawerName]: undefined}})
   }
 
   saveBreaks(breaks, canClose, changes){
@@ -578,12 +579,12 @@ export default class App extends Component {
               currentTime={this.state.currentTime}
               defaultColorIndex={this.props.data.defaultColorIndex}
               showErrors={this.state.showErrors}
-              onColorChange={this.handleColorChange.bind(this)}
-              onDoneEditing={this.handleDoneEditingProject.bind(this)}
-              onAddProject={this.handleAddProject.bind(this)}
+              onColorChange={this.handleColorChange.bind(this, "projects")}
+              onDoneEditing={this.handleDoneEditingProject.bind(this, "projects")}
+              onAddProject={this.handleAddProject.bind(this, "projects")}
               onProjectStateChange={this.handleProjectStateChange.bind(this)}
-              onDeleteProject={this.handleDeleteProject.bind(this)}
-              onDragEnd={this.handleDragEnd.bind(this)}/>
+              onDeleteProject={this.handleDeleteProject.bind(this, "projects")}
+              onDragEnd={this.handleDragEnd.bind(this, "projects")}/>
             {
               this.props.data.mode === "planning" ?
               // planning mode
@@ -603,11 +604,13 @@ export default class App extends Component {
                   <Grid container justify="space-evenly">
                     <Grid>
                       <Button
-                        id="editBreaksButton"
-                        onClick={this.openBreaksDrawer.bind(this)}
+                        className="planningSecondaryButton"
+                        onClick={() => {
+                          this.setState({temp: {...this.state.temp, openBreaksDrawer: true}})
+                        }}
                         style={{marginBottom: "1rem"}}>
                         <PauseIcon color="primary" />
-                        Set/Edit breaks
+                        Edit breaks
                       </Button>
                     </Grid>
                     <Grid>
@@ -619,13 +622,47 @@ export default class App extends Component {
                         Let's get to work!
                       </Button>
                     </Grid>
+                    <Grid>
+                      <Button
+                        className="planningSecondaryButton"
+                        onClick={() => {
+                          this.setState({temp: {...this.state.temp, openDefaultProjectsDrawer: true}})
+                        }}
+                        style={{marginBottom: "1rem"}}>
+                        <AutorenewIcon color="primary" />
+                        Edit default projects
+                      </Button>
+                    </Grid>
                   </Grid>
-                  <Drawer id="BreaksDrawer" anchor="bottom" open={this.state.temp.openBreaksDrawer} onClose={this.closeBreaksDrawer}>
+                  <Drawer
+                    id="BreaksDrawer"
+                    anchor="bottom"
+                    open={this.state.temp.openBreaksDrawer}
+                    onClose={() => {this.closeDrawer("BreaksDrawer", "breaks")}}
+                  >
                     <BreaksDrawer
                       breaks={this.props.data.breaks}
                       currentTime={this.state.currentTime}
                       onSave={this.saveBreaks.bind(this)}
-                      onClose={this.closeBreaksDrawer}
+                      onClose={() => {this.closeDrawer("BreaksDrawer", "breaks")}}
+                    />
+                  </Drawer>
+                  <Drawer
+                    id="DefaultProjectsDrawer"
+                    anchor="bottom"
+                    open={this.state.temp.openDefaultProjectsDrawer}
+                    onClose={() => {this.closeDrawer("DefaultProjectsDrawer", "projects")}}
+                  >
+                    <DefaultProjectsDrawer
+                      projects={this.props.data.defaultProjects}
+                      settings={this.props.data.settings}
+                      defaultColorIndex={this.props.data.defaultColorIndexDefaultProjects}
+                      onClose={() => {this.closeDrawer("DefaultProjectsDrawer", "projects")}}
+                      onColorChange={this.handleColorChange.bind(this, "defaultProjects")}
+                      onDoneEditing={this.handleDoneEditingProject.bind(this, "defaultProjects")}
+                      onAddProject={this.handleAddProject.bind(this, "defaultProjects")}
+                      onDeleteProject={this.handleDeleteProject.bind(this, "defaultProjects")}
+                      onDragEnd={this.handleDragEnd.bind(this, "defaultProjects")}
                     />
                   </Drawer>
                 </React.Fragment>

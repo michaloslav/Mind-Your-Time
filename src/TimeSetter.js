@@ -83,42 +83,40 @@ export default class TimeSetter extends Component {
 
     return (
       <SettingsContext.Consumer>
-        {settings => {
-          return (
-            <div className={"TimeSetter" + (this.props.showError ? " timeSetterError" : "")} style={{display: "inline"}}>
-              <Input
-                onChange={this.handleInputChange.bind(this, "h", settings.timeFormat24H)}
-                value={(settings.timeFormat24H && this.props.value.pm) ? h + 12 : h}
-                id={this.props.firstInputId}
-                placeholder="Hours"
-                aria-label="Hours"
-                autoComplete="off"
-                error={this.props.hError}
-                onKeyPress={this.handleKeyPress}
-                onKeyDown={this.handleKeyDown.bind(this, "h", settings)}
-              />
-              :
-              <Input
-                onChange={this.handleInputChange.bind(this, "m", settings.timeFormat24H)}
-                value={m}
-                placeholder="Minutes"
-                aria-label="Minutes"
-                autoComplete="off"
-                error={this.props.mError}
-                onKeyPress={this.handleKeyPress}
-                onKeyDown={this.handleKeyDown.bind(this, "m", settings)}
-              />
-              {!settings.timeFormat24H && (
-                <Select
-                  onChange={this.handleInputChange.bind(this, "pm", settings.timeFormat24H)}
-                  value={this.props.value.pm ? "PM" : "AM"}>
-                  <MenuItem value="AM">AM</MenuItem>
-                  <MenuItem value="PM">PM</MenuItem>
-                </Select>
-              )}
-            </div>
-          )
-        }}
+        {settings => (
+          <div className={"TimeSetter" + (this.props.showError ? " timeSetterError" : "")} style={{display: "inline"}}>
+            <Input
+              onChange={this.handleInputChange.bind(this, "h", settings.timeFormat24H)}
+              value={(settings.timeFormat24H && this.props.value.pm) ? h + 12 : h}
+              id={this.props.firstInputId}
+              placeholder="Hours"
+              aria-label="Hours"
+              autoComplete="off"
+              error={this.props.hError}
+              onKeyPress={this.handleKeyPress}
+              onKeyDown={this.handleKeyDown.bind(this, "h", settings)}
+            />
+            :
+            <Input
+              onChange={this.handleInputChange.bind(this, "m", settings.timeFormat24H)}
+              value={m}
+              placeholder="Minutes"
+              aria-label="Minutes"
+              autoComplete="off"
+              error={this.props.mError}
+              onKeyPress={this.handleKeyPress}
+              onKeyDown={this.handleKeyDown.bind(this, "m", settings)}
+            />
+            {!settings.timeFormat24H && (
+              <Select
+                onChange={this.handleInputChange.bind(this, "pm", settings.timeFormat24H)}
+                value={this.props.value.pm ? "PM" : "AM"}>
+                <MenuItem value="AM">AM</MenuItem>
+                <MenuItem value="PM">PM</MenuItem>
+              </Select>
+            )}
+          </div>
+        )}
       </SettingsContext.Consumer>
     )
   }

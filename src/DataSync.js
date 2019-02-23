@@ -108,17 +108,19 @@ export default class DataSync extends Component{
   }
 
   componentDidMount(){
-    let objectsToLoad = ["projects", "breaks", "settings", "startTime", "endTime"]
-    let propertiesToLoad = ["mode", "defaultColorIndex", "productivityPercentage"]
+    let objectsToLoad = ["projects", "breaks", "defaultProjects", "settings", "startTime", "endTime"]
+    let propertiesToLoad = ["mode", "defaultColorIndex", "defaultColorIndexDefaultProjects", "productivityPercentage"]
 
     let defaultValues = {
       projects: [],
       breaks: [],
+      defaultProjects: [],
       settings: defaultSettings,
       startTime: {h: 2, m: "00", pm: true},
       endTime: {h: 9, m: "00", pm: true},
       mode: "planning",
       defaultColorIndex: 0,
+      defaultColorIndexDefaultProjects: 0,
       productivityPercentage: undefined
     }
 
@@ -154,8 +156,6 @@ export default class DataSync extends Component{
       }
     }
 
-    console.log(data);
-
     this.setState(data)
 
     // if the user's logged in, connect to the server
@@ -175,9 +175,34 @@ export default class DataSync extends Component{
       return
     }
 
-    let {projects, breaks, settings, startTime, endTime, mode, defaultColorIndex, lastReset, lastModified} = this.state
+    let {
+      projects,
+      breaks,
+      defaultProjects,
+      settings,
+      startTime,
+      endTime,
+      mode,
+      defaultColorIndex,
+      defaultColorIndexDefaultProjects,
+      lastReset,
+      lastModified
+    } = this.state
 
-    let localData = {projects, breaks, settings, startTime, endTime, mode, defaultColorIndex, lastReset, lastModified}
+    let localData = {
+      projects,
+      breaks,
+      defaultProjects,
+      settings,
+      startTime,
+      endTime,
+      mode,
+      defaultColorIndex,
+      defaultColorIndexDefaultProjects,
+      lastReset,
+      lastModified
+    }
+
     if(this.state.productivityPercentage) localData.productivityPercentage = this.state.productivityPercentage
 
     this.idToken = idToken
@@ -199,6 +224,7 @@ export default class DataSync extends Component{
     // handle reset
     if(data.projects && !data.projects.length && this.state.projects.length){
       console.log("reset");
+      data.projects = this.state.defaultProjects
       data.breaks = []
       data.lastReset = new Date()
       data.productivityPercentage = undefined
@@ -232,6 +258,13 @@ export default class DataSync extends Component{
             data.breaks,
             changes ? changes.breaks : undefined,
             "breaks"
+          )
+          break;
+        case "defaultProjects":
+          lastModified.defaultProjects = this.setMultipleLastModified(
+            data.defaultProjects,
+            changes ? changes.defaultProjects : undefined,
+            "defaultProjects"
           )
           break;
         case "settings":
@@ -404,7 +437,11 @@ export default class DataSync extends Component{
     Object.keys(data).forEach(key => {
       if(key === "lastModified"){
         Object.keys(data.lastModified).forEach(lastModifiedKey => {
-          if(lastModifiedKey === "projects" || lastModifiedKey === "breaks"){
+          if(
+            lastModifiedKey === "projects" ||
+            lastModifiedKey === "breaks" ||
+            lastModifiedKey ==="defaultProjects"
+          ){
             Object.keys(data.lastModified[lastModifiedKey]).forEach(objectIdKey => {
               Object.keys(data.lastModified[lastModifiedKey][objectIdKey]).forEach(propertyKey => {
                 let localStorageKey = ["lastModified", lastModifiedKey, objectIdKey, propertyKey].join("_")

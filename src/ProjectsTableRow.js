@@ -83,33 +83,32 @@ export default class ProjectsTableRow extends Component {
   render(){
     let showEditing = this.state.editing && this.props.mode === "planning"
 
-    // calculate progress
-    let progress
-    if(this.props.row.progress) progress = parseInt(this.props.row.progress)
-    else progress = 0
-    if(this.props.row.state === "workingOnIt"){
-      progress += TimeCalc.subtractToMinutes(this.props.currentTime, this.props.row.startedWorkingOnIt, true)
+    let progress, stateClass, startIsTooLate, endIsTooLate, timeLeft
+    if(!this.props.dontCalculateState){
+      // calculate progress
+      if(this.props.row.progress) progress = parseInt(this.props.row.progress)
+      else progress = 0
+      if(this.props.row.state === "workingOnIt"){
+        progress += TimeCalc.subtractToMinutes(this.props.currentTime, this.props.row.startedWorkingOnIt, true)
+      }
+
+      let progressCapped = progress // same as progress except capped at estimatedDuration
+      if(progressCapped > this.props.row.estimatedDuration) progressCapped = this.props.row.estimatedDuration
+
+      timeLeft = parseInt(this.props.row.estimatedDuration) - progressCapped
+
+      // get the stateClass - done, too late
+      startIsTooLate = !TimeCalc.isBiggerThan(
+        TimeCalc.add(this.props.row.plannedTime.start, progressCapped),
+        this.props.currentTime, true, true)
+      endIsTooLate = !TimeCalc.isBiggerThan(this.props.row.plannedTime.end, this.props.currentTime, true, true)
+      if(this.props.row.state === "done") stateClass = "stateClassDone"
+      else if(startIsTooLate && this.props.row.state !== "workingOnIt") stateClass = "stateClassTooLate"
     }
-    
-    let progressCapped = progress // same as progress except capped at estimatedDuration
-    if(progressCapped > this.props.row.estimatedDuration) progressCapped = this.props.row.estimatedDuration
-
-    let timeLeft = parseInt(this.props.row.estimatedDuration) - progressCapped
-
-    // get the stateClass - done, too late
-    let startIsTooLate = !TimeCalc.isBiggerThan(
-      TimeCalc.add(this.props.row.plannedTime.start, progressCapped),
-      this.props.currentTime, true, true)
-    let endIsTooLate = !TimeCalc.isBiggerThan(this.props.row.plannedTime.end, this.props.currentTime, true, true)
-    let stateClass = null
-    if(this.props.row.state === "done") stateClass = "stateClassDone"
-    else if(startIsTooLate && this.props.row.state !== "workingOnIt") stateClass = "stateClassTooLate"
 
     return (
       <RootRef rootRef={this.props.provided.innerRef}>
-        <TableRow
-          {...this.props.provided.draggableProps}>
-
+        <TableRow {...this.props.provided.draggableProps}>
           <TableCell>
             <Icon className="dragIcon" {...this.props.provided.dragHandleProps}>drag_indicator</Icon>
             <ColorPicker value={this.props.row.color} onChange={this.props.onColorChange.bind(this, this.props.row.id)}/>
@@ -162,25 +161,23 @@ export default class ProjectsTableRow extends Component {
             />
           ) : (
             <SettingsContext.Consumer>
-              {settings => {
-                return (
-                  <TableCell className={showEditing ? "setStartTimeCell" : null}>
-                    <span className={startIsTooLate && stateClass === "stateClassTooLate"  ? stateClass : null}>
-                      {TimeCalc.makeString(this.props.row.plannedTime.start,
-                        this.props.row.plannedTime.start.pm !== this.props.row.plannedTime.end.pm,
-                        true,
-                        settings.timeFormat24H
-                      ) /*showPmOrAm only if it's different from the endTime*/}
-                    </span>
-                    <span className={startIsTooLate && endIsTooLate && stateClass === "stateClassTooLate" ? stateClass : null}>
-                      -
-                    </span>
-                    <span className={endIsTooLate && stateClass !== "stateClassDone" ? "stateClassTooLate" : null}>
-                      {TimeCalc.makeString(this.props.row.plannedTime.end, true, false, settings.timeFormat24H)}
-                    </span>
-                  </TableCell>
-                )
-              }}
+              {settings => (
+                <TableCell className={showEditing ? "setStartTimeCell" : null}>
+                  <span className={startIsTooLate && stateClass === "stateClassTooLate"  ? stateClass : null}>
+                    {TimeCalc.makeString(this.props.row.plannedTime.start,
+                      this.props.row.plannedTime.start.pm !== this.props.row.plannedTime.end.pm,
+                      true,
+                      settings.timeFormat24H
+                    ) /*showPmOrAm only if it's different from the endTime*/}
+                  </span>
+                  <span className={startIsTooLate && endIsTooLate && stateClass === "stateClassTooLate" ? stateClass : null}>
+                    -
+                  </span>
+                  <span className={endIsTooLate && stateClass !== "stateClassDone" ? "stateClassTooLate" : null}>
+                    {TimeCalc.makeString(this.props.row.plannedTime.end, true, false, settings.timeFormat24H)}
+                  </span>
+                </TableCell>
+              )}
             </SettingsContext.Consumer>
           )}
 

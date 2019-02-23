@@ -20,26 +20,22 @@ export default function ProjectsTableBody(props) {
             <TableCell/>
           </TableRow>
         )}
-        {props.projects.map((row, i) => {
-          return (
-            <Draggable key={row.id} draggableId={row.id.toString()} index={i}>
-              {provided => {
-                return (
-                  <ProjectsTableRow
-                    mode={props.mode}
-                    row={row}
-                    currentTime={props.currentTime}
-                    provided={provided}
-                    onColorChange={props.onColorChange}
-                    onDoneEditing={props.onDoneEditing}
-                    onProjectStateChange={props.onProjectStateChange}
-                    onDeleteProject={props.onDeleteProject}
-                  />
-                )
-              }}
-            </Draggable>
-          )
-        })}
+        {props.projects.map((row, i) => (
+          <Draggable key={row.id} draggableId={row.id.toString()} index={i}>
+            {provided => (
+              <ProjectsTableRow
+                mode={props.mode}
+                row={row}
+                currentTime={props.currentTime}
+                provided={provided}
+                onColorChange={props.onColorChange}
+                onDoneEditing={props.onDoneEditing}
+                onProjectStateChange={props.onProjectStateChange}
+                onDeleteProject={props.onDeleteProject}
+              />
+            )}
+          </Draggable>
+        ))}
         {props.provided.placeholder}
         {
           // if in planning mode..

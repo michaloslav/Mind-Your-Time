@@ -21,8 +21,7 @@ export default function ProjectsTable(props){
       </TableHead>
       <DragDropContext onDragEnd={props.onDragEnd}>
         <Droppable droppableId="0">
-          {provided => {
-            return (
+          {provided => (
               <ProjectsTableBody
                 projects={props.projects}
                 mode={props.mode}
@@ -37,7 +36,6 @@ export default function ProjectsTable(props){
                 onProjectStateChange={props.onProjectStateChange}
                 onDeleteProject={props.onDeleteProject} />
               )
-            }
             }
           </Droppable>
         </DragDropContext>
