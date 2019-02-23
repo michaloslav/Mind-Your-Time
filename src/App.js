@@ -603,8 +603,8 @@ export default class App extends Component {
                   <Grid container justify="space-evenly">
                     <Grid>
                       <Button
+                        id="editBreaksButton"
                         onClick={this.openBreaksDrawer.bind(this)}
-                        /*variant="contained"*/
                         style={{marginBottom: "1rem"}}>
                         <PauseIcon color="primary" />
                         Set/Edit breaks
@@ -655,6 +655,7 @@ export default class App extends Component {
             {this.state.showResetButton && (
               <Grid container justify="flex-end" alignItems="flex-end" style={{marginTop: "2rem"}}>
                 <Button
+                  id="resetButton"
                   onClick={this.resetState.bind(this)}
                   variant="contained">
                   Reset
