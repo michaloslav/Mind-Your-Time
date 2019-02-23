@@ -42,10 +42,10 @@ export default class TimeStats extends Component {
   render(){
     // calculate the stats
     // (if currentTime and settings are available)
-    let totalProjectTime, totalBreakTime, timeNeeded, timeRemaining, timeNeededWarning, timeRemainingNegative, timeRemainingWarning
+    let totalProjectTime, totalBufferTime, totalBreakTime, timeNeeded, timeRemaining, timeNeededWarning, timeRemainingNegative, timeRemainingWarning
 
     if(this.state.currentTimeAvailable && this.props.settings.bufferTimePercentage){
-      totalProjectTime = 0
+      totalProjectTime = totalBufferTime = 0
       this.props.projects.forEach((project, i) => {
         if(project.state !== "done"){
           let durationLeft = parseInt(project.estimatedDuration)
@@ -59,17 +59,17 @@ export default class TimeStats extends Component {
             durationLeft -= TimeCalc.subtractToMinutes(this.props.currentTime, project.startedWorkingOnIt, true)
           }
 
-          // if this isn't the last project, add a buffer time to the sum
-          if(i !== this.props.projects.length - 1){
-            durationLeft += Math.round(durationLeft * this.props.settings.bufferTimePercentage)
-          }
-
           totalProjectTime += durationLeft
 
+          // if this isn't the last project, add a buffer time to the sum
+          if(i !== this.props.projects.length - 1){
+            totalBufferTime += Math.round(durationLeft * this.props.settings.bufferTimePercentage)
+          }
         }
       })
-      // round totalProjectTime according to settings
+      // round according to settings
       totalProjectTime = Math.round(totalProjectTime / this.props.settings.roundTo) * this.props.settings.roundTo
+      totalBufferTime = Math.round(totalBufferTime / this.props.settings.roundTo) * this.props.settings.roundTo
 
       totalBreakTime = 0
       for(let el of this.props.breaks){
@@ -91,7 +91,7 @@ export default class TimeStats extends Component {
       // round totalBreakTime according to settings
       totalBreakTime = Math.round(totalBreakTime / this.props.settings.roundTo) * this.props.settings.roundTo
 
-      timeNeeded = TimeCalc.toTimeObject(TimeCalc.addToMinutes(totalProjectTime, totalBreakTime), false)
+      timeNeeded = TimeCalc.toTimeObject(TimeCalc.addToMinutes(totalProjectTime, totalBufferTime, totalBreakTime), false)
       timeRemaining = TimeCalc.subtract(this.props.endTime, this.props.currentTime, true)
 
       // figure out which warnings to show
@@ -101,33 +101,28 @@ export default class TimeStats extends Component {
     }
     else{
       // used if the currentTime or settings aren't available yet -> faster load time
-      totalProjectTime = totalBreakTime = 0
+      totalProjectTime = totalBufferTime = totalBreakTime = 0
       timeNeeded = timeRemaining = {h: 0, m: 0, pm: false}
       timeNeededWarning = timeRemainingNegative = timeRemainingWarning = false
     }
 
-
-    let timeNeededCell = (
-      <div>
-        <div className="timeStatsLabelDiv">
-          <label style={{right: "1.42rem"}}>
-            Time needed:
-          </label>
-        </div>
-        {TimeCalc.makeString(timeNeeded, false)}
-      </div>
-    )
-
     return (
       <React.Fragment>
         <Grid item className={"timeStatsSideGridItem" + (timeNeededWarning ? " timeStatsWarning" : null)}>
-          {totalProjectTime && totalBreakTime ? (
-            <Tooltip title={
-              "Projects: " + TimeCalc.makeString(totalProjectTime, false) + ", breaks: " + TimeCalc.makeString(totalBreakTime, false)
-            }>
-            {timeNeededCell}
-            </Tooltip>
-          ) : timeNeededCell}
+          <Tooltip title={
+            "Projects: " + TimeCalc.makeString(totalProjectTime, false) +
+            ",\nBuffers: " + TimeCalc.makeString(totalBufferTime, false) +
+            ",\nBreaks: " + TimeCalc.makeString(totalBreakTime, false)
+          }>
+            <div>
+              <div className="timeStatsLabelDiv">
+                <label style={{right: "1.42rem"}}>
+                  Time needed:
+                </label>
+              </div>
+              {TimeCalc.makeString(timeNeeded, false)}
+            </div>
+          </Tooltip>
         </Grid>
         <Grid item>
           <h4>

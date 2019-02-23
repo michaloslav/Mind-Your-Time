@@ -486,6 +486,7 @@ export default class App extends Component {
 
   handleCurrentTimeChange(time){
     this.setState({currentTime: time})
+    setTimeout(this.setShowResetButton)
   }
 
   resetState(){
