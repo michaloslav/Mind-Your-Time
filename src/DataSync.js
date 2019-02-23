@@ -34,11 +34,13 @@ export default class DataSync extends Component{
       temp: {}
     }
 
-    this.io = SocketIOClient.connect('http://localhost')
+    this.io = SocketIOClient.connect('https://mind-your-time-server.herokuapp.com')
 
     setTimeout(() => {
       // check if the user is offline
       if(this.io.disconnected){
+        console.warn("Can't connect to server");
+
         let temp = this.state.temp
         temp.disconnected = true
         // only show the error if the user is logged in
