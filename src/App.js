@@ -657,12 +657,14 @@ export default class App extends Component {
                       projects={this.props.data.defaultProjects}
                       settings={this.props.data.settings}
                       defaultColorIndex={this.props.data.defaultColorIndexDefaultProjects}
+                      useDefaultProjects={this.props.data.useDefaultProjects}
                       onClose={() => {this.closeDrawer("DefaultProjectsDrawer", "projects")}}
                       onColorChange={this.handleColorChange.bind(this, "defaultProjects")}
                       onDoneEditing={this.handleDoneEditingProject.bind(this, "defaultProjects")}
                       onAddProject={this.handleAddProject.bind(this, "defaultProjects")}
                       onDeleteProject={this.handleDeleteProject.bind(this, "defaultProjects")}
                       onDragEnd={this.handleDragEnd.bind(this, "defaultProjects")}
+                      onUseDefaultProjectsChange={e => {this.props.update({useDefaultProjects: e.target.checked})}}
                     />
                   </Drawer>
                 </React.Fragment>

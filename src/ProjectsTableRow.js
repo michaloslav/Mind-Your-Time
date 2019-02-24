@@ -64,7 +64,7 @@ export default class ProjectsTableRow extends Component {
 
   handleDoneEditing = () => {
     // validation
-    let validation = projectValidation(this.state.values)
+    let validation = projectValidation(this.state.values, this.props.dontShowTime)
     if(!validation.valid){
       let newState = this.state.showErrors
       validation.errors.forEach(error => {
@@ -150,7 +150,7 @@ export default class ProjectsTableRow extends Component {
             )}
           </TableCell>
 
-          {showEditing ? (
+          {!this.props.dontShowTime && (showEditing ? (
             <SetStartTimeCell
               value={this.state.values.startTime}
               onChange={this.handleStartTimeChange.bind(this)}
@@ -179,7 +179,7 @@ export default class ProjectsTableRow extends Component {
                 </TableCell>
               )}
             </SettingsContext.Consumer>
-          )}
+          ))}
 
           {this.props.mode === "planning" ? (
             <TableCell>

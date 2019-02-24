@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Router from './Router'
+import TimeCalc, { setTimesForProjects } from './util/TimeCalc'
 import Snackbar from '@material-ui/core/Snackbar';
 import SnackbarContent from '@material-ui/core/SnackbarContent';
 import IconButton from '@material-ui/core/IconButton';
@@ -9,6 +10,7 @@ import Cookies from 'universal-cookie';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import green from '@material-ui/core/colors/green';
 import { defaultSettings } from './_defaultSettings'
+import makeNewId from './util/makeNewId'
 
 const cookies = new Cookies()
 
@@ -109,7 +111,7 @@ export default class DataSync extends Component{
 
   componentDidMount(){
     let objectsToLoad = ["projects", "breaks", "defaultProjects", "settings", "startTime", "endTime"]
-    let propertiesToLoad = ["mode", "defaultColorIndex", "defaultColorIndexDefaultProjects", "productivityPercentage"]
+    let propertiesToLoad = ["mode", "defaultColorIndex", "defaultColorIndexDefaultProjects", "productivityPercentage", "useDefaultProjects"]
 
     let defaultValues = {
       projects: [],
@@ -121,7 +123,8 @@ export default class DataSync extends Component{
       mode: "planning",
       defaultColorIndex: 0,
       defaultColorIndexDefaultProjects: 0,
-      productivityPercentage: undefined
+      productivityPercentage: undefined,
+      useDefaultProjects: true
     }
 
 
@@ -186,6 +189,7 @@ export default class DataSync extends Component{
       defaultColorIndex,
       defaultColorIndexDefaultProjects,
       lastReset,
+      useDefaultProjects,
       lastModified
     } = this.state
 
@@ -200,6 +204,7 @@ export default class DataSync extends Component{
       defaultColorIndex,
       defaultColorIndexDefaultProjects,
       lastReset,
+      useDefaultProjects,
       lastModified
     }
 
@@ -224,7 +229,22 @@ export default class DataSync extends Component{
     // handle reset
     if(data.projects && !data.projects.length && this.state.projects.length){
       console.log("reset");
-      data.projects = this.state.defaultProjects
+      if(data.useDefaultProjects || this.state.useDefaultProjects){
+        data.projects = this.state.defaultProjects
+
+        // suggest a new startTime and set the project times
+        let settings = data.settings || this.state.settings
+        let startTime = TimeCalc.add(new Date().getHours() * 60 + new Date().getMinutes(), 10)
+        startTime = TimeCalc.round(startTime, settings.roundTo)
+        data.projects = setTimesForProjects(data.projects, settings, [], startTime)
+
+        // generate a new unique ID for each project
+        data.projects.forEach(project => {
+          project.id = makeNewId(data.projects, "projects")
+        })
+      }
+      else data.projects = []
+
       data.breaks = []
       data.lastReset = new Date()
       data.productivityPercentage = undefined

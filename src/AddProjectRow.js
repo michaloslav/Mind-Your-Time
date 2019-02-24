@@ -38,7 +38,8 @@ export default class AddProjectRow extends Component {
     if(
       this.state.userHasntChangedStartTime &&
       this.props.settings.bufferTimePercentage &&
-      this.props.lastProject
+      this.props.lastProject &&
+      !this.props.dontShowTime
     ){
       let suggestedStartTime = TimeCalc.suggestStartTime(
         this.props.lastProject.plannedTime.end,
@@ -49,6 +50,7 @@ export default class AddProjectRow extends Component {
         this.state.inputValues.startTime.h === "" ||
         !TimeCalc.areIdentical(suggestedStartTime, this.state.inputValues.startTime)
       ){
+        console.log(suggestedStartTime);
         this.setState(
           {
             inputValues: {
@@ -113,7 +115,7 @@ export default class AddProjectRow extends Component {
 
   handleAddProject = () => {
     // validation
-    let validation = projectValidation(this.state.inputValues)
+    let validation = projectValidation(this.state.inputValues, this.props.dontShowTime)
     if(!validation.valid){
       let newState = this.state.showErrors
       validation.errors.forEach(error => {
@@ -189,15 +191,17 @@ export default class AddProjectRow extends Component {
             onKeyPress={this.handleEnterPress}
           /> minutes
         </TableCell>
-        <SetStartTimeCell
-          onChange={this.handleStartTimeChange.bind(this)}
-          value={this.state.inputValues.startTime}
-          firstInputId="setStartTimeInput"
-          hError={this.state.showErrors.startTimeH || showErrorProp}
-          mError={this.state.showErrors.startTimeM || showErrorProp}
-          showErrors={this.state.showErrors}
-          onEnterPress={this.handleAddProject}
-        />
+        {!this.props.dontShowTime && (
+          <SetStartTimeCell
+            onChange={this.handleStartTimeChange.bind(this)}
+            value={this.state.inputValues.startTime}
+            firstInputId="setStartTimeInput"
+            hError={this.state.showErrors.startTimeH || showErrorProp}
+            mError={this.state.showErrors.startTimeM || showErrorProp}
+            showErrors={this.state.showErrors}
+            onEnterPress={this.handleAddProject}
+          />
+        )}
         <TableCell>
           <IconButton color="primary"
             style={{color: this.props.showErrors.noProjects ? "red" : null}}

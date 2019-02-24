@@ -11,18 +11,33 @@ import Typography from '@material-ui/core/Typography';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
+import Switch from '@material-ui/core/Switch';
 
 export default function DefaultProjectsDrawer(props){
   return (
     <React.Fragment>
-      <Typography variant="h6">Default projects:</Typography>
+      <Grid container justify="space-between">
+        <Grid>
+          <Typography variant="h6">Default projects:</Typography>
+        </Grid>
+        <Grid>
+          <label>
+            Use default projects
+            <Switch
+              color="primary"
+              checked={props.useDefaultProjects}
+              onChange={props.onUseDefaultProjectsChange}
+              aria-label="Use default projects"
+            />
+          </label>
+        </Grid>
+      </Grid>
       <Table className="DefaultProjectsDrawer">
         <TableHead>
           <TableRow>
             <TableCell/>
             <TableCell>Name</TableCell>
             <TableCell>Duration</TableCell>
-            <TableCell>Time</TableCell>
             <TableCell/>
           </TableRow>
         </TableHead>
@@ -34,7 +49,7 @@ export default function DefaultProjectsDrawer(props){
                   {!props.projects.length && (
                     <TableRow>
                       <TableCell/>
-                      <TableCell colSpan={3}>
+                      <TableCell colSpan={2}>
                         You haven't set any projects yet
                       </TableCell>
                       <TableCell/>
@@ -53,6 +68,7 @@ export default function DefaultProjectsDrawer(props){
                           onProjectStateChange={props.onProjectStateChange}
                           onDeleteProject={props.onDeleteProject}
                           dontCalculateState={true}
+                          dontShowTime={true}
                         />
                       )}
                     </Draggable>
@@ -64,6 +80,7 @@ export default function DefaultProjectsDrawer(props){
                     showErrors={{}}
                     lastProject={props.projects[props.projects.length - 1]}
                     onAddProject={props.onAddProject}
+                    dontShowTime={true}
                   />
                 </TableBody>
               </RootRef>
