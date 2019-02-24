@@ -630,7 +630,7 @@ export default class App extends Component {
                         }}
                         style={{marginBottom: "1rem"}}>
                         <AutorenewIcon color="primary" />
-                        Edit default projects
+                        Repetitive projects
                       </Button>
                     </Grid>
                   </Grid>

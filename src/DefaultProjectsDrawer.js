@@ -18,11 +18,11 @@ export default function DefaultProjectsDrawer(props){
     <React.Fragment>
       <Grid container justify="space-between">
         <Grid>
-          <Typography variant="h6">Default projects:</Typography>
+          <Typography variant="h6">Repetitive projects:</Typography>
         </Grid>
         <Grid>
           <label>
-            Use default projects
+            Use repetitive projects
             <Switch
               color="primary"
               checked={props.useDefaultProjects}
@@ -50,7 +50,7 @@ export default function DefaultProjectsDrawer(props){
                     <TableRow>
                       <TableCell/>
                       <TableCell colSpan={2}>
-                        You haven't set any projects yet
+                        You haven't set any repetitive projects yet
                       </TableCell>
                       <TableCell/>
                     </TableRow>
