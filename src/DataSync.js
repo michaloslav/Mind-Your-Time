@@ -242,6 +242,9 @@ export default class DataSync extends Component{
         data.projects.forEach(project => {
           project.id = makeNewId(data.projects, "projects")
         })
+
+        // set the startTime
+        data.startTime = startTime
       }
       else data.projects = []
 

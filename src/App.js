@@ -110,7 +110,7 @@ export default class App extends Component {
     }
 
     // only one of the two needs to be true to show the reset button
-    let showResetButton = condition1 || condition2
+    let showResetButton = (condition1 || condition2) && this.props.data.projects.length
     this.setState({showResetButton})
   }
 
@@ -601,7 +601,7 @@ export default class App extends Component {
                       showError={this.state.showErrors.endTime}
                     />
                   </div>
-                  <Grid container justify="space-evenly">
+                  <Grid container justify="space-around">
                     <Grid>
                       <Button
                         className="planningSecondaryButton"
