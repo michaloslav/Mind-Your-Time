@@ -25,14 +25,14 @@ export default function DefaultProjectsDrawer(props){
             Use repetitive projects
             <Switch
               color="primary"
-              checked={props.useDefaultProjects}
+              checked={props.useDefaultProjects && props.useDefaultProjects !== "false" /*handle string input*/}
               onChange={props.onUseDefaultProjectsChange}
               aria-label="Use default projects"
             />
           </label>
         </Grid>
       </Grid>
-      <Table className="DefaultProjectsDrawer">
+      <Table>
         <TableHead>
           <TableRow>
             <TableCell/>

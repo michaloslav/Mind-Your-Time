@@ -19,26 +19,34 @@ import { SettingsContext } from './_Context'
 export default class ProjectsTableRow extends Component {
   constructor(props){
     super(props)
-    this.state = {
+
+    let defaultState = {
       editing: false,
       values: {
         name: this.props.row.name,
-        duration: this.props.row.estimatedDuration,
-        startTime: this.props.row.plannedTime.start
+        duration: this.props.row.estimatedDuration
       },
       showErrors: {}
     }
+
+    if(!this.props.dontShowTime) defaultState.values.startTime = this.props.row.plannedTime.start
+
+    this.state = defaultState
   }
 
   handleStartEditing(){
-    this.setState({
-      editing: true,
-      // get the startTime from props again in case it changed via drag n drop
-      values: {
-        ...this.state.values,
-        startTime: Object.assign({}, this.props.row.plannedTime.start)
-      }
-    })
+    let newState = {
+      values: this.state.values
+    }
+    newState.editing = true
+
+    // get the startTime from props again in case it changed via drag n drop
+    // (unless we're dealing with defaultProjects)
+    if(!this.props.dontShowTime){
+      newState.values.startTime = Object.assign({}, this.props.row.plannedTime.start)
+    }
+
+    this.setState(newState)
   }
 
   handleInputChange(id, e){

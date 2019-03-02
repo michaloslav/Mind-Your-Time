@@ -25,13 +25,13 @@ export default class BreaksDrawer extends Component{
     if(breaks.length){
       // set the default value of newBreak
       newBreak.startTime = TimeCalc.add(breaks[breaks.length - 1].endTime, 90)
-      newBreak.endTime = TimeCalc.add(newBreak.startTime, 30)
+      newBreak.endTime = TimeCalc.add(newBreak.startTime, 60)
     }
 
     // if there aren't any, set the default value
     else{
       newBreak.startTime = TimeCalc.round(TimeCalc.add(props.currentTime, 90), 15)
-      newBreak.endTime = TimeCalc.add(newBreak.startTime, 30)
+      newBreak.endTime = TimeCalc.add(newBreak.startTime, 60)
     }
 
     newBreak.name = ""

@@ -86,7 +86,10 @@ export default class App extends Component {
 
     if(allProjectsDone !== this.state.allProjectsDone) this.setState({allProjectsDone})
     if(totalTimeWorkedString !== this.state.totalTimeWorkedString) this.setState({totalTimeWorkedString})
-    if(productivityPercentage !== this.props.data.productivityPercentage) this.props.update({productivityPercentage})
+    if(
+      productivityPercentage !== this.props.data.productivityPercentage &&
+      !(isNaN(productivityPercentage) && typeof productivityPercentage === "number") // handle NaN
+    ) this.props.update({productivityPercentage})
   }
 
   // internal method, used in componentDidMount and componentDidUpdate
@@ -231,15 +234,18 @@ export default class App extends Component {
       name: project.name,
       color: project.color,
       estimatedDuration: project.duration,
-      plannedTime: {
+      state:'notStarted'
+    }
+    if(arrayId !== "defaultProjects"){ // don't add the plannedTime property if we're editting the defaultProjects
+      newProject.plannedTime = {
         start: project.startTime,
         end: TimeCalc.add(project.startTime, project.duration)
-      },
-      state:'notStarted'
+      }
     }
 
     // if the startTime is larger that the suggested time, add a new break
-    if(projects.length){ // don't execute if there are no previous projects
+    // (don't execute if there are no previous projects or if it's defaultProjects)
+    if(projects.length && arrayId !== "defaultProjects"){
       let currentLastProject = projects[projects.length - 1]
       if(
         settings.detectBreaksAutomatically &&
@@ -261,7 +267,7 @@ export default class App extends Component {
     }
 
     // if it's the first project being added, save the startTime as well
-    if(projects.length === 1) newState.startTime = projects[0].plannedTime.start
+    if(projects.length === 1 && arrayId !== "defaultProjects") newState.startTime = projects[0].plannedTime.start
 
     // save to state
     this.props.update(newState, {[arrayId]: newId})
@@ -274,18 +280,20 @@ export default class App extends Component {
     let index = projects.findIndex(project => project.id === id)
 
     // if we are updating the timing and if the deleted project is the first one, adjust the next startTime
-    if(settings.updateTimesAfterDelete && index === 0 && projects[1]){
+    if(settings.updateTimesAfterDelete && index === 0 && projects[1] && arrayId !== "defaultProjects"){
       projects[1].plannedTime.start = projects[0].plannedTime.start
     }
 
     projects.splice(index, 1)
 
-    if(settings.updateTimesAfterDelete) projects = setTimesForProjects(projects, settings, this.props.data.breaks, this.props.data.startTime)
+    if(settings.updateTimesAfterDelete && arrayId !== "defaultProjects"){
+      projects = setTimesForProjects(projects, settings, this.props.data.breaks, this.props.data.startTime)
+    }
 
     let newState = {[arrayId]: projects}
 
     // if the user just deleted the last remaining project, reset breaks as well
-    if(!projects.length) newState.breaks = []
+    if(!projects.length && arrayId !== "defaultProjects") newState.breaks = []
 
     this.props.update(newState, {[arrayId]: id})
   }
@@ -326,7 +334,9 @@ export default class App extends Component {
     let projects = []
     this.props.data[arrayId].forEach(project => {
       let copy = Object.assign({}, project)
-      copy.plannedTime = JSON.parse(JSON.stringify(project.plannedTime))
+      if(arrayId !== "defaultProjects"){
+        copy.plannedTime = JSON.parse(JSON.stringify(project.plannedTime))
+      }
       projects.push(copy)
     })
 
@@ -338,7 +348,8 @@ export default class App extends Component {
 
     // store the startTime of the project that is currently first
     // (for the setTimesForProjects function to work properly)
-    let firstStartTime = projects[0].plannedTime.start
+    let firstStartTime
+    if(arrayId !== "defaultProjects") firstStartTime = projects[0].plannedTime.start
 
     // remove from the current position
     projects.splice(movedProjectIndex, 1)
@@ -346,7 +357,7 @@ export default class App extends Component {
     // add to the new position
     projects.splice(index, 0, movedProject)
 
-    if(this.props.data.settings.updateTimesAfterDrag){
+    if(this.props.data.settings.updateTimesAfterDrag && arrayId !== "defaultProjects"){
       projects[0].plannedTime.start = firstStartTime
 
       projects = setTimesForProjects(projects, this.props.data.settings, this.props.data.breaks, this.props.data.startTime)
@@ -371,8 +382,10 @@ export default class App extends Component {
 
     // if we're changing something about the timing, break the reference to plannedTime too
     if(
-      changedProject.estimatedDuration !== values.duration ||
-      !TimeCalc.areIdentical(changedProject.plannedTime.start, values.startTime)
+      arrayId !== "defaultProjects" && (
+        changedProject.estimatedDuration !== values.duration ||
+        !TimeCalc.areIdentical(changedProject.plannedTime.start, values.startTime)
+      )
     ){
       changedProject.plannedTime = Object.assign({}, changedProject.plannedTime)
     }
@@ -383,6 +396,7 @@ export default class App extends Component {
     if(
       settings.detectBreaksAutomatically &&
       index !== 0 &&
+      arrayId !== "defaultProjects" &&
       TimeCalc.isBiggerThan(values.startTime, changedProject.plannedTime.start, false, true)
     ){
       breaks = this.addBreak(
@@ -395,6 +409,7 @@ export default class App extends Component {
     if(
       settings.detectBreaksAutomatically &&
       index !== 0 &&
+      arrayId !== "defaultProjects" &&
       TimeCalc.isBiggerThan(changedProject.plannedTime.start, values.startTime, false, true)
     ){
       for(let i = 0; i < breaks.length; i++){
@@ -409,13 +424,16 @@ export default class App extends Component {
     }
 
     // check if any time values were changed (so that we don't unnecessarily recalculate project times)
-    let durationChanged = parseInt(changedProject.estimatedDuration) !== parseInt(values.duration)
-    let startTimeChanged = !TimeCalc.areIdentical(changedProject.plannedTime.start, values.startTime)
+    let durationChanged, startTimeChanged
+    if(arrayId !== "defaultProjects"){
+      durationChanged = parseInt(changedProject.estimatedDuration) !== parseInt(values.duration)
+      startTimeChanged = !TimeCalc.areIdentical(changedProject.plannedTime.start, values.startTime)
+    }
 
     // change the values
     changedProject.name = values.name
     changedProject.estimatedDuration = values.duration
-    changedProject.plannedTime.start = values.startTime
+    if(arrayId !== "defaultProjects") changedProject.plannedTime.start = values.startTime
 
     // insert the changedProject back into the array
     projects.splice(index, 0, changedProject)
@@ -437,14 +455,20 @@ export default class App extends Component {
     // else simply adjust the endTime
     else{
       changes = {[arrayId]: id}
-      projects[index].plannedTime.end = TimeCalc.add(projects[index].plannedTime.start, projects[index].estimatedDuration)
+      if(arrayId !== "defaultProjects"){
+        projects[index].plannedTime.end = TimeCalc.add(projects[index].plannedTime.start, projects[index].estimatedDuration)
+      }
     }
 
     // create the newState object
     let newState = {[arrayId]: projects}
 
     // if the startTime of the first project was changed, adjust this.props.data.startTime accordingly
-    if(index === 0 && !TimeCalc.areIdentical(this.props.data.startTime, changedProject.plannedTime.start)){
+    if(
+      index === 0 &&
+      arrayId !== "defaultProjects" &&
+      !TimeCalc.areIdentical(this.props.data.startTime, changedProject.plannedTime.start)
+    ){
       newState.startTime = changedProject.plannedTime.start
     }
 
@@ -514,7 +538,13 @@ export default class App extends Component {
     if(typeof this.state.temp["canClose" + drawerName] === "undefined" ||
       this.state.temp["canClose" + drawerName] ||
       window.confirm(`Some of the ${dataLabel} weren't editted properly. If you close this now, those changes will be lost`)
-    ) this.setState({temp: {...this.state.temp, ["open" + drawerName]: false, ["canClose" + drawerName]: undefined}})
+    ){
+      let newTemp = this.state.temp
+      newTemp["open" + drawerName] = false
+      newTemp["canClose" + drawerName] = undefined
+      if(drawerName === "DefaultProjectsDrawer") newTemp.defaultProjectsDrawerRemoveTransform = false
+      this.setState(newTemp)
+    }
   }
 
   saveBreaks(breaks, canClose, changes){
@@ -547,6 +577,13 @@ export default class App extends Component {
     this.setState({temp: {...this.state.temp, signInDissmissed: null}})
     localStorage.removeItem("userHasDismissedSignInBefore")
     localStorage.dontShowSignInPanelAgain = true
+  }
+
+  openDefaultProjectsDrawer = () => {
+    this.setState({temp: {...this.state.temp, openDefaultProjectsDrawer: true}})
+    setTimeout(() => {
+      this.setState({temp: {...this.state.temp, defaultProjectsDrawerRemoveTransform: true}})
+    }, 400)
   }
 
   render() {
@@ -625,9 +662,7 @@ export default class App extends Component {
                     <Grid>
                       <Button
                         className="planningSecondaryButton"
-                        onClick={() => {
-                          this.setState({temp: {...this.state.temp, openDefaultProjectsDrawer: true}})
-                        }}
+                        onClick={this.openDefaultProjectsDrawer}
                         style={{marginBottom: "1rem"}}>
                         <AutorenewIcon color="primary" />
                         Repetitive projects
@@ -649,6 +684,10 @@ export default class App extends Component {
                   </Drawer>
                   <Drawer
                     id="DefaultProjectsDrawer"
+                    className={
+                      this.state.temp.defaultProjectsDrawerRemoveTransform ?
+                      "defaultProjectsDrawerRemoveTransform" : null
+                    }
                     anchor="bottom"
                     open={this.state.temp.openDefaultProjectsDrawer}
                     onClose={() => {this.closeDrawer("DefaultProjectsDrawer", "projects")}}
@@ -712,7 +751,8 @@ export default class App extends Component {
             !this.props.loggedIn &&
             !this.state.temp.dontShowSignInYet &&
             !this.state.temp.signInDissmissed &&
-            !localStorage.dontShowSignInPanelAgain
+            !localStorage.dontShowSignInPanelAgain &&
+            !this.props.disconnected
           }
           mountOnEnter unmountOnExit
         >

@@ -95,7 +95,7 @@ export default class DataSync extends Component{
       }
     })
 
-    this.io.on("error", data => {
+    this.io.on("errorU", data => {
       console.warn("error", data);
 
       if(data.type === "invalidAccessToken"){

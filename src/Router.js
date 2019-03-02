@@ -17,6 +17,7 @@ export default class AppRouter extends Component {
       update={this.props.update}
       disconnect={this.props.disconnect}
       loggedIn={this.props.loggedIn}
+      disconnected={this.props.disconnected}
       {...props}
     />
   )

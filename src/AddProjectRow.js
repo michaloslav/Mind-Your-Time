@@ -50,7 +50,6 @@ export default class AddProjectRow extends Component {
         this.state.inputValues.startTime.h === "" ||
         !TimeCalc.areIdentical(suggestedStartTime, this.state.inputValues.startTime)
       ){
-        console.log(suggestedStartTime);
         this.setState(
           {
             inputValues: {

@@ -74,16 +74,16 @@ a{
 
 #ProjectsTable th:first-child,
 #ProjectsTable td:first-child,
-.DefaultProjectsDrawer th:first-child,
-.DefaultProjectsDrawer td:first-child{
+#DefaultProjectsDrawer th:first-child,
+#DefaultProjectsDrawer td:first-child{
   width: 3rem;
   padding: 0;
 }
 
 #ProjectsTable th:last-child,
 #ProjectsTable td:last-child,
-.DefaultProjectsDrawer th:last-child,
-.DefaultProjectsDrawer td:last-child{
+#DefaultProjectsDrawer th:last-child,
+#DefaultProjectsDrawer td:last-child{
   width: 6rem;
   padding: 0;
 }
@@ -218,6 +218,10 @@ a{
 
 #addProjectRow .setNameCell, #addProjectRow .setDurationCell{
   padding-top: 1rem !important;
+}
+
+.defaultProjectsDrawerRemoveTransform > div {
+  transform: none !important;
 }
 
 /* working */
