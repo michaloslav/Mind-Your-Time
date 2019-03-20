@@ -54,8 +54,9 @@ export default class DataSync extends Component{
     this.io.on("connect", data => {
       // if the user was previously disconnected and they're logged in, connect them
       if(!this.state.temp.successfulConnectInit && this.state.temp.disconnected && this.state.accessToken){
+        let localData = this.state.temp.updatedWhileDisconnected ? this.getData() : {}
         this.io.emit("connectInit", {
-          type: "accessToken", accessToken: this.state.accessToken, localData: this.getData()
+          type: "accessToken", accessToken: this.state.accessToken, localData
         })
       }
 
@@ -322,9 +323,13 @@ export default class DataSync extends Component{
     }
 
     // send an update to the server
-    if(this.state.accessToken && !this.io.disconnected){
-      console.log(data);
-      this.io.emit("update", {accessToken: this.state.accessToken, data})
+    if(this.state.accessToken){
+      if(!this.io.disconnected){
+        this.io.emit("update", {accessToken: this.state.accessToken, data})
+      }
+      else{
+        this.setState({temp: {...this.state.temp, updatedWhileDisconnected: true}})
+      }
     }
   }
 
