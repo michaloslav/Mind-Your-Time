@@ -462,7 +462,6 @@ export default class DataSync extends Component{
   }
 
   handleUpdateFromServer = data => {
-    console.log(data);
     // merge lastModified when saving to state
     this.setState({
       ...data,
