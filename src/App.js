@@ -1,4 +1,8 @@
 import React, { Component } from 'react';
+import AddProjectView from "./MobileViews/AddProjectView"
+import EditProjectView from "./MobileViews/EditProjectView"
+import BreaksView from "./MobileViews/BreaksView"
+import DefaultProjectsView from "./MobileViews/DefaultProjectsView"
 import ModeSwitch from './ModeSwitch'
 import ProjectsTable from './ProjectsTable'
 import TimeSetter from './TimeSetter'
@@ -7,6 +11,7 @@ import BreaksDrawer from './BreaksDrawer'
 import DefaultProjectsDrawer from './DefaultProjectsDrawer'
 import SignInPanel from './SignInPanel'
 import DropdownMenu from './DropdownMenu'
+import AddFab from './AddFab'
 import Grid from '@material-ui/core/Grid'
 import Button from '@material-ui/core/Button';
 import Drawer from '@material-ui/core/Drawer';
@@ -18,21 +23,15 @@ import StartIcon from '@material-ui/icons/PlayArrow';
 import AutorenewIcon from '@material-ui/icons/Autorenew';
 import TimeCalc, { setTimesForProjects } from './util/TimeCalc'
 import makeNewId from './util/makeNewId'
-import { SettingsContext } from './_Context'
+import getGetParams from './util/getGetParams'
+import { SettingsContext, IsMobileContext } from './_Context'
+import './css/App.css'
 
 export default class App extends Component {
   constructor(props){
     super(props)
     this.state = {
-      currentTime: {
-        h: 0,
-        m: 0,
-        pm: true
-      },
-      showErrors: {
-        endTime: false,
-        noProjects: false
-      },
+      showErrors: {},
       showResetButton: false,
       temp: {
         dontShowSignInYet: true
@@ -40,7 +39,7 @@ export default class App extends Component {
     }
 
     // only show the sign in panel after a little while
-    setTimeout(() => {
+    this.showSignInPanelAfterLoadTimeout = setTimeout(() => {
       this.setState({temp: {...this.state.temp, dontShowSignInYet: false}})
     }, 5000)
   }
@@ -77,7 +76,7 @@ export default class App extends Component {
         }
         // else calculate and store it
         else{
-          let totalTimePassed = TimeCalc.subtractToMinutes(this.state.currentTime, this.props.data.startTime, true)
+          let totalTimePassed = TimeCalc.subtractToMinutes(this.props.currentTime, this.props.data.startTime, true)
           productivityPercentage = Math.round(100 * totalTimeWorked / totalTimePassed)
         }
       }
@@ -92,6 +91,11 @@ export default class App extends Component {
     ) this.props.update({productivityPercentage})
   }
 
+  componentWillUnmount(){
+    clearTimeout(this.showSignInAgainTimeout)
+    clearTimeout(this.showSignInPanelAfterLoadTimeout)
+  }
+
   // internal method, used in componentDidMount and componentDidUpdate
   setShowResetButton = () => {
     let condition1, condition2
@@ -100,7 +104,7 @@ export default class App extends Component {
     let lastResetInMs = new Date(localStorage.lastReset).getTime() // ms since 1970
     lastResetInMs = lastResetInMs % (24*60*60*1000)
     let lastResetInMinutes = lastResetInMs / 1000 / 60
-    condition1 = TimeCalc.isBiggerThan(lastResetInMinutes, this.state.currentTime, false, true)
+    condition1 = TimeCalc.isBiggerThan(lastResetInMinutes, this.props.currentTime, false, true)
 
     // only check for condition2 if condition1 doesn't check out
     if(!condition1){
@@ -171,23 +175,7 @@ export default class App extends Component {
     return breaks
   }
 
-  handleModeChange(val){
-    // don't let the user go into work mode if there isn't an endTime or if projects are empty  (+ show an error)
-    if(val === "working"){
-      if(this.props.data.endTime.h === "" || this.props.data.endTime.m === ""){
-        this.setState({showErrors: {...this.state.showErrors, endTime: true}})
-        return
-      }
-      if(!this.props.data.projects.length){
-        this.setState({showErrors: {...this.state.showErrors, noProjects: true}})
-        return
-      }
-    }
-
-    this.props.update({mode: val})
-  }
-
-  handleEndTimeChange(id, val){
+  handleEndTimeChange = (id, val) => {
     let endTime = Object.assign({}, this.props.data.endTime)
     let newState = {
       showErrors: this.state.showErrors,
@@ -200,15 +188,15 @@ export default class App extends Component {
     // show/hide error
     if(endTime.h === ""
       || endTime.m === ""
-      || TimeCalc.isBiggerThan(this.state.currentTime, endTime, true, true)
+      || TimeCalc.isBiggerThan(this.props.currentTime, endTime, true, true)
     ){
       newState.temp.endTimeErrorTimeout = setTimeout(() => {
-        this.setState({showErrors: {...this.state.showErrors, endTime: true}})
+        this.props.changeRouterShowErrors("endTime", true)
       }, 250)
     }
     else{
       clearTimeout(newState.temp.endTimeErrorTimeout)
-      newState.showErrors.endTime = false
+      this.props.changeRouterShowErrors("endTime", false)
     }
 
     newState.endTime = endTime
@@ -217,9 +205,9 @@ export default class App extends Component {
     this.props.update({endTime})
   }
 
-  handleAddProject(arrayId, project, newDefaultColorIndex){
-    // hide the noProjects error
-    this.setState({showErrors: {...this.state.showErrors, noProjects: false}})
+  addProject(arrayId, project, newDefaultColorIndex){
+    // hide the noProjects error, hide the temp var
+    this.props.changeRouterShowErrors("noProjects", false)
 
     // copy the state
     let projects = this.props.data[arrayId].slice()
@@ -261,7 +249,7 @@ export default class App extends Component {
     // create the newState object , handle undefined for newDefaultColorIndex
     projects.push(newProject)
     let newState = {[arrayId]: projects}
-    if(newDefaultColorIndex){
+    if(typeof newDefaultColorIndex !== "undefined"){
       let defaultColorIndexKey = arrayId === "projects" ? "defaultColorIndex" : "defaultColorIndexDefaultProjects"
       newState[defaultColorIndexKey] = newDefaultColorIndex
     }
@@ -273,11 +261,11 @@ export default class App extends Component {
     this.props.update(newState, {[arrayId]: newId})
   }
 
-  handleDeleteProject(arrayId, id){
+  deleteProject(arrayId, id){
     let projects = this.props.data[arrayId].slice()
     let settings = this.props.data.settings
 
-    let index = projects.findIndex(project => project.id === id)
+    let index = projects.findIndex(project => project.id === parseInt(id))
 
     // if we are updating the timing and if the deleted project is the first one, adjust the next startTime
     if(settings.updateTimesAfterDelete && index === 0 && projects[1] && arrayId !== "defaultProjects"){
@@ -299,18 +287,18 @@ export default class App extends Component {
   }
 
   // switch mode on Tab press
-  handleRootKeyDown(e){
+  handleRootKeyDown = e => {
     if(this.props.data.settings.changeModeOnTab && e.key === "Tab" && !this.state.temp.openBreaksDrawer){
       e.preventDefault()
 
-      this.handleModeChange(this.props.data.mode === "planning" ? "working" : "planning")
+      this.props.changeMode(this.props.data.mode === "planning" ? "working" : "planning")
     }
   }
 
   handleColorChange(arrayId, id, val){
     let projects = this.props.data[arrayId].slice()
 
-    let index = projects.findIndex(project => project.id === id)
+    let index = projects.findIndex(project => project.id === parseInt(id))
 
     // break the reference
     let changedProject = Object.assign({}, projects[index])
@@ -372,7 +360,10 @@ export default class App extends Component {
     let breaks = this.props.data.breaks
     let settings = this.props.data.settings
 
-    let index = projects.findIndex(project => project.id === id)
+    let index = projects.findIndex(project => project.id === parseInt(id))
+
+    // undefined handling
+    if(index < 0) return
 
     // break the reference (keep the reference for plannedTime if it hasn't changed)
     let changedProject = {}
@@ -479,7 +470,7 @@ export default class App extends Component {
   handleProjectStateChange(id, val, progress){
     let projects = this.props.data.projects.slice()
 
-    let index = projects.findIndex(project => project.id === id)
+    let index = projects.findIndex(project => project.id === parseInt(id))
 
     // break the reference
     let changedProject = Object.assign({}, projects[index])
@@ -492,7 +483,7 @@ export default class App extends Component {
     if(val === "paused" && !isNaN(parseInt(progress))) changedProject.progress = progress
 
     // if it's being changed to workingOnIt, save current time
-    if(val === "workingOnIt") changedProject.startedWorkingOnIt = this.state.currentTime
+    if(val === "workingOnIt") changedProject.startedWorkingOnIt = this.props.currentTime
 
     let changes = {projects: [id]}
 
@@ -513,12 +504,12 @@ export default class App extends Component {
     this.props.update({projects}, changes)
   }
 
-  handleCurrentTimeChange(time){
-    this.setState({currentTime: time})
+  handleCurrentTimeChange = time => {
+    this.props.onCurrentTimeChange(time)
     setTimeout(this.setShowResetButton)
   }
 
-  resetState(){
+  resetState = () => {
     if(window.confirm("Are you sure you want to delete all your projects?")){
       this.props.update({
         projects: [],
@@ -528,10 +519,6 @@ export default class App extends Component {
       })
       this.setState({showResetButton: false})
     }
-  }
-
-  handleEndTimeValidation(success){
-    this.setState({showErrors: {...this.state.showErrors, endTime:success}})
   }
 
   closeDrawer = (drawerName, dataLabel) => {
@@ -547,7 +534,7 @@ export default class App extends Component {
     }
   }
 
-  saveBreaks(breaks, canClose, changes){
+  saveBreaks = (breaks, canClose, changes) => {
     if(typeof canClose === "undefined" || canClose){
       let projects = this.props.data.projects.slice()
       if(this.props.data.projects.length){
@@ -568,7 +555,7 @@ export default class App extends Component {
     localStorage.userHasDismissedSignInBefore = true
 
     // show the panel again in 30 minutes
-    setTimeout(() => {
+    this.showSignInAgainTimeout = setTimeout(() => {
       this.setState({temp: {...this.state.temp, signInDissmissed: null}})
     }, 30*60*1000)
   }
@@ -586,190 +573,434 @@ export default class App extends Component {
     }, 400)
   }
 
+  changeView(view, change, additionalProps){
+    // if the change is positive (we're moving into 'view')
+    if(change){
+      let newPath = "/" + view
+      if(additionalProps && typeof additionalProps.stopPropagation !== "function"){
+        newPath += "?"
+
+        let isFirst = true
+        for(let [key, value] of Object.entries(additionalProps)){
+
+          // add "&" (unless it would be before the first param)
+          if(isFirst) isFirst = false
+          else newPath += "&"
+
+          newPath += key + "=" + value
+        }
+      }
+      this.props.history.push(newPath)
+    }
+    // if the change is negative (we're returning from 'view')
+    else{
+      let pathArr = this.props.history.location.pathname.split("/")
+      pathArr.splice(-1, 1)
+      this.props.history.push(pathArr.join("/"))
+    }
+  }
+
+  addBreak = newBreak => {
+    let { breaks } = this.props.data
+
+    let newId = makeNewId(breaks, "breaks")
+
+    breaks.push({
+      id: newId,
+      ...newBreak
+    })
+
+    this.props.update({breaks}, {breaks: newId})
+  }
+
+  handleDoneEditingBreak(id, inputValues){
+    let breaks = this.props.data.breaks.slice()
+
+    let index = breaks.findIndex(obj => obj.id === parseInt(id))
+
+    if(index < 0) return
+
+    let obj = JSON.parse(JSON.stringify(breaks[index]))
+
+    obj.name = inputValues.name
+    obj.startTime = inputValues.startTime
+    obj.endTime = inputValues.endTime
+
+    breaks.splice(index, 1, obj)
+
+    this.props.update({breaks}, {breaks: id})
+  }
+
+  deleteBreak(id){
+    let breaks = this.props.data.breaks
+
+    let index = breaks.findIndex(obj => obj.id === parseInt(id))
+
+    breaks.splice(index, 1)
+
+    this.props.update({breaks}, {breaks: id})
+  }
+
   render() {
+    if(this.props.history.location.pathname === "/add"){
+      let getParams = getGetParams(this.props.location.search)
+
+      let title, arrayId, closeFunc, defaultColorIndex
+      switch(getParams.type){
+        case "default":
+          arrayId = "defaultProjects"
+          title = "Add a repetitive project"
+          closeFunc = this.changeView.bind(this, "defaultProjects", true)
+          defaultColorIndex = this.props.data.defaultColorIndexDefaultProjects
+          break
+        case "break":
+          arrayId = "breaks"
+          title = "Add a break"
+          closeFunc = this.changeView.bind(this, "breaks", true)
+          break
+        default:
+          arrayId = "projects"
+          closeFunc = this.changeView.bind(this, "add", false)
+          defaultColorIndex = this.props.data.defaultColorIndex
+      }
+
+      return (
+        <AddProjectView
+          settings={this.props.data.settings}
+          defaultColorIndex={defaultColorIndex}
+          showErrors={this.state.showErrors}
+          currentTime={this.props.currentTime}
+          lastProject={this.props.data.projects[this.props.data.projects.length - 1]}
+          onAddProject={this.addProject.bind(this, arrayId)}
+          onAddBreak={this.addBreak}
+          type={getParams.type}
+          close={closeFunc}
+          title={title}
+        />
+      )
+    }
+
+    if(
+      this.props.history.location.pathname === "/edit" &&
+      this.props.data.breaks // only open after the data is loaded to prevent errors
+    ){
+      // parse GET params
+      let getParams = getGetParams(this.props.location.search)
+
+      let { type } = getParams
+
+      let arrayId, close
+      switch(type){
+        case "default":
+          arrayId = "defaultProjects"
+          close = this.changeView.bind(this, "defaultProjects", true)
+          break
+        case "break":
+          arrayId = "breaks"
+          close = this.changeView.bind(this, "breaks", true)
+          break
+        default:
+          arrayId = "projects"
+          close = this.changeView.bind(this, "edit", false)
+      }
+
+      let id = getParams.id
+
+      let array = this.props.data[arrayId]
+
+      let index = array.findIndex(obj => obj.id.toString() === id)
+
+      let obj = array[index]
+      if(obj){ // handle undefined
+        let inputValues = {name: obj.name}
+        if(type !== "default") inputValues.startTime = obj.plannedTime ? obj.plannedTime.start : obj.startTime
+        if(type === "break"){
+          inputValues.endTime = obj.endTime
+        }
+        else{
+          inputValues.duration = obj.estimatedDuration
+          inputValues.color = obj.color
+        }
+
+        let deleteFunc, doneEditingFunc
+        if(type === "break"){
+          deleteFunc = this.deleteBreak.bind(this, id)
+          doneEditingFunc = this.handleDoneEditingBreak.bind(this, id)
+        }
+        else{
+          deleteFunc = this.deleteProject.bind(this, arrayId, id)
+          doneEditingFunc = this.handleDoneEditingProject.bind(this, arrayId, id)
+        }
+
+        return (
+          <EditProjectView
+            settings={this.props.data.settings}
+            inputValues={inputValues}
+            delete={deleteFunc}
+            onDoneEditing={doneEditingFunc}
+            close={close}
+            type={type}
+          />
+        )
+      }
+    }
+
+    if(
+      this.props.history.location.pathname === "/breaks"&&
+      this.props.data.breaks
+    ){
+      return (
+        <BreaksView
+          breaks={this.props.data.breaks}
+          changeView={this.changeView.bind(this)}
+        />
+      )
+    }
+
+    if(
+      this.props.history.location.pathname === "/defaultProjects" &&
+      this.props.data.defaultProjects
+    ){
+      return (
+        <DefaultProjectsView
+          projects={this.props.data.defaultProjects}
+          settings={this.props.data.settings}
+          defaultColorIndex={this.props.data.defaultColorIndexDefaultProjects}
+          useDefaultProjects={this.props.data.useDefaultProjects}
+          onColorChange={this.handleColorChange.bind(this, "defaultProjects")}
+          onDoneEditing={this.handleDoneEditingProject.bind(this, "defaultProjects")}
+          onAddProject={this.addProject.bind(this, "defaultProjects")}
+          onDeleteProject={this.deleteProject.bind(this, "defaultProjects")}
+          onDragEnd={this.handleDragEnd.bind(this, "defaultProjects")}
+          onUseDefaultProjectsChange={e => {this.props.update({useDefaultProjects: e.target.checked})}}
+          startEditingMobile={id => {
+            this.changeView("edit", true, {type: "default", id})
+          }}
+          changeView={this.changeView.bind(this)}
+        />
+      )
+    }
+
     let {allProjectsDone, totalTimeWorkedString} = this.state
     let productivityPercentage = this.props.data.productivityPercentage
 
+    // merge showErrors from App and Router
+    let showErrors = {
+      ...this.props.showErrors,
+      ...this.state.showErrors
+    }
+
     return (
-      <Grid
-        className="App"
-        onKeyDown={this.handleRootKeyDown.bind(this)}
-        tabIndex="0">
-        <ModeSwitch
-          mode={this.props.data.mode}
-          onModeChange={this.handleModeChange.bind(this)}>
-          <TimeStats
-            currentTime={this.state.currentTime}
-            onCurrentTimeChange={this.handleCurrentTimeChange.bind(this)}
-            endTime={this.props.data.endTime}
-            projects={this.props.data.projects}
-            breaks={this.props.data.breaks}
-            settings={this.props.data.settings}
-          />
-        </ModeSwitch>
-        <Grid container>
-          <SettingsContext.Provider value={this.props.data.settings}>
-            <ProjectsTable
-              mode={this.props.data.mode}
-              projects={this.props.data.projects}
-              settings={this.props.data.settings}
-              currentTime={this.state.currentTime}
-              defaultColorIndex={this.props.data.defaultColorIndex}
-              showErrors={this.state.showErrors}
-              onColorChange={this.handleColorChange.bind(this, "projects")}
-              onDoneEditing={this.handleDoneEditingProject.bind(this, "projects")}
-              onAddProject={this.handleAddProject.bind(this, "projects")}
-              onProjectStateChange={this.handleProjectStateChange.bind(this)}
-              onDeleteProject={this.handleDeleteProject.bind(this, "projects")}
-              onDragEnd={this.handleDragEnd.bind(this, "projects")}/>
-            {
-              this.props.data.mode === "planning" ?
-              // planning mode
-              (
-                <React.Fragment>
-                  <div id="setEndTime">
-                    <label htmlFor="endTimeHoursInput">
-                      Time when you want to stop working:
-                    </label>
-                    <TimeSetter
-                      onChange={this.handleEndTimeChange.bind(this)}
-                      value={this.props.data.endTime}
-                      firstInputId="endTimeHoursInput"
-                      showError={this.state.showErrors.endTime}
-                    />
-                  </div>
-                  <Grid container justify="space-around">
-                    <Grid>
-                      <Button
-                        className="planningSecondaryButton"
-                        onClick={() => {
-                          this.setState({temp: {...this.state.temp, openBreaksDrawer: true}})
-                        }}
-                        style={{marginBottom: "1rem"}}>
-                        <PauseIcon color="primary" />
-                        Edit breaks
-                      </Button>
-                    </Grid>
-                    <Grid>
-                      <Button
-                        onClick={this.handleModeChange.bind(this, "working")}
-                        variant="contained"
-                        color="primary">
-                        <StartIcon />
-                        Let's get to work!
-                      </Button>
-                    </Grid>
-                    <Grid>
-                      <Button
-                        className="planningSecondaryButton"
-                        onClick={this.openDefaultProjectsDrawer}
-                        style={{marginBottom: "1rem"}}>
-                        <AutorenewIcon color="primary" />
-                        Repetitive projects
-                      </Button>
-                    </Grid>
-                  </Grid>
-                  <Drawer
-                    id="BreaksDrawer"
-                    anchor="bottom"
-                    open={this.state.temp.openBreaksDrawer}
-                    onClose={() => {this.closeDrawer("BreaksDrawer", "breaks")}}
-                  >
-                    <BreaksDrawer
-                      breaks={this.props.data.breaks}
-                      currentTime={this.state.currentTime}
-                      onSave={this.saveBreaks.bind(this)}
-                      onClose={() => {this.closeDrawer("BreaksDrawer", "breaks")}}
-                    />
-                  </Drawer>
-                  <Drawer
-                    id="DefaultProjectsDrawer"
-                    className={
-                      this.state.temp.defaultProjectsDrawerRemoveTransform ?
-                      "defaultProjectsDrawerRemoveTransform" : null
-                    }
-                    anchor="bottom"
-                    open={this.state.temp.openDefaultProjectsDrawer}
-                    onClose={() => {this.closeDrawer("DefaultProjectsDrawer", "projects")}}
-                  >
-                    <DefaultProjectsDrawer
-                      projects={this.props.data.defaultProjects}
-                      settings={this.props.data.settings}
-                      defaultColorIndex={this.props.data.defaultColorIndexDefaultProjects}
-                      useDefaultProjects={this.props.data.useDefaultProjects}
-                      onClose={() => {this.closeDrawer("DefaultProjectsDrawer", "projects")}}
-                      onColorChange={this.handleColorChange.bind(this, "defaultProjects")}
-                      onDoneEditing={this.handleDoneEditingProject.bind(this, "defaultProjects")}
-                      onAddProject={this.handleAddProject.bind(this, "defaultProjects")}
-                      onDeleteProject={this.handleDeleteProject.bind(this, "defaultProjects")}
-                      onDragEnd={this.handleDragEnd.bind(this, "defaultProjects")}
-                      onUseDefaultProjectsChange={e => {this.props.update({useDefaultProjects: e.target.checked})}}
-                    />
-                  </Drawer>
-                </React.Fragment>
-              )
-              :
-              // working mode
-              (
-                allProjectsDone && (
-                  <div id="congratsDiv">
-                    <span id="congrats">
-                      CONGRATULATIONS!
-                    </span>
-                    <br/>
-                    You got {totalTimeWorkedString} worth of work done
-                    <br/>
-                    {
-                      productivityPercentage >= 0 && productivityPercentage <= 100 &&(
-                        <span>
-                          You were productive {productivityPercentage}% of the time
-                        </span>
-                      )
-                    }
-                  </div>
-                )
-              )
-            }
-            {this.state.showResetButton && (
-              <Grid container justify="flex-end" alignItems="flex-end" style={{marginTop: "2rem"}}>
-                <Button
-                  id="resetButton"
-                  onClick={this.resetState.bind(this)}
-                  variant="contained">
-                  Reset
-                </Button>
-              </Grid>
+      <IsMobileContext.Consumer>
+        {isMobile => (
+          <Grid
+            className="container"
+            onKeyDown={this.handleRootKeyDown}
+            tabIndex="0"
+          >
+            {!isMobile && (
+              <ModeSwitch
+                mode={this.props.data.mode}
+                onModeChange={this.props.changeMode}>
+                <TimeStats
+                  currentTime={this.props.currentTime}
+                  onCurrentTimeChange={this.handleCurrentTimeChange}
+                  endTime={this.props.data.endTime}
+                  projects={this.props.data.projects}
+                  breaks={this.props.data.breaks}
+                  settings={this.props.data.settings}
+                  startTime={this.props.data.startTime}
+                />
+              </ModeSwitch>
             )}
-          </SettingsContext.Provider>
-        </Grid>
-        <Link id="linkToSettings" to="/settings" aria-label="Settings" title="Settings">
-          <SettingsIcon />
-        </Link>
-        <Slide
-          direction="right"
-          in={
-            !this.props.loggedIn &&
-            !this.state.temp.dontShowSignInYet &&
-            !this.state.temp.signInDissmissed &&
-            !localStorage.dontShowSignInPanelAgain &&
-            !this.props.disconnected
-          }
-          mountOnEnter unmountOnExit
-        >
-          <SignInPanel
-            connect={this.props.connect}
-            dismiss={this.handleSignInDismiss}
-            showDontRemindMeAgain={localStorage.userHasDismissedSignInBefore}
-            dontRemindMeAgain={this.handleSignInDontRemindMeAgain}
-          />
-        </Slide>
-        <DropdownMenu
-          connect={this.props.connect}
-          disconnect={this.props.disconnect}
-          history={this.props.history}
-          loggedIn={this.props.loggedIn}
-        />
-      </Grid>
+            <Grid container>
+              <SettingsContext.Provider value={this.props.data.settings}>
+                <ProjectsTable
+                  mode={this.props.data.mode}
+                  projects={this.props.data.projects}
+                  settings={this.props.data.settings}
+                  currentTime={this.props.currentTime}
+                  defaultColorIndex={this.props.data.defaultColorIndex}
+                  showErrors={showErrors}
+                  onColorChange={this.handleColorChange.bind(this, "projects")}
+                  onDoneEditing={this.handleDoneEditingProject.bind(this, "projects")}
+                  onAddProject={this.addProject.bind(this, "projects")}
+                  onProjectStateChange={this.handleProjectStateChange.bind(this)}
+                  onDeleteProject={this.deleteProject.bind(this, "projects")}
+                  onDragEnd={this.handleDragEnd.bind(this, "projects")}
+                  startEditingMobile={id => {
+                    this.changeView("edit", true, {id})
+                  }}
+                />
+                {
+                  this.props.data.mode === "planning" ?
+                  // planning mode
+                  (
+                    <React.Fragment>
+                      <div id="setEndTime">
+                        <label htmlFor="endTimeHoursInput">
+                          {isMobile ? "End time" : "Time when you want to stop working"}:
+                        </label>
+                        <TimeSetter
+                          onChange={this.handleEndTimeChange}
+                          value={this.props.data.endTime}
+                          firstInputId="endTimeHoursInput"
+                          showError={showErrors.endTime}
+                        />
+                      </div>
+                      <Grid container justify="space-around">
+                        {
+                          !isMobile && (
+                            <Grid>
+                              <Button
+                                className="planningSecondaryButton"
+                                onClick={() => {
+                                  this.setState({temp: {...this.state.temp, openBreaksDrawer: true}})
+                                }}
+                                style={{marginBottom: "1rem"}}>
+                                <PauseIcon color="primary" />
+                                Edit breaks
+                              </Button>
+                            </Grid>
+                          )
+                        }
+                        <Grid>
+                          <Button
+                            onClick={() => {this.props.changeMode("working")}}
+                            variant="contained"
+                            color="primary">
+                            <StartIcon />
+                            Let's get to work!
+                          </Button>
+                        </Grid>
+                        {
+                          !isMobile && (
+                            <Grid>
+                              <Button
+                                className="planningSecondaryButton"
+                                onClick={this.openDefaultProjectsDrawer}
+                                style={{marginBottom: "1rem"}}>
+                                <AutorenewIcon color="primary" />
+                                Repetitive projects
+                              </Button>
+                            </Grid>
+                          )
+                        }
+                      </Grid>
+                      <Drawer
+                        id="BreaksDrawer"
+                        anchor="bottom"
+                        open={this.state.temp.openBreaksDrawer && !isMobile}
+                        onClose={() => {this.closeDrawer("BreaksDrawer", "breaks")}}
+                      >
+                        <BreaksDrawer
+                          breaks={this.props.data.breaks}
+                          currentTime={this.props.currentTime}
+                          onSave={this.saveBreaks}
+                          onClose={() => {this.closeDrawer("BreaksDrawer", "breaks")}}
+                        />
+                      </Drawer>
+                      <Drawer
+                        className={
+                          this.state.temp.defaultProjectsDrawerRemoveTransform ?
+                          "defaultProjectsDrawerRemoveTransform" : null
+                        }
+                        anchor="bottom"
+                        open={this.state.temp.openDefaultProjectsDrawer && !isMobile}
+                        onClose={() => {this.closeDrawer("DefaultProjectsDrawer", "projects")}}
+                      >
+                        <DefaultProjectsDrawer
+                          projects={this.props.data.defaultProjects}
+                          settings={this.props.data.settings}
+                          defaultColorIndex={this.props.data.defaultColorIndexDefaultProjects}
+                          useDefaultProjects={this.props.data.useDefaultProjects}
+                          onClose={() => {this.closeDrawer("DefaultProjectsDrawer", "projects")}}
+                          onColorChange={this.handleColorChange.bind(this, "defaultProjects")}
+                          onDoneEditing={this.handleDoneEditingProject.bind(this, "defaultProjects")}
+                          onAddProject={this.addProject.bind(this, "defaultProjects")}
+                          onDeleteProject={this.deleteProject.bind(this, "defaultProjects")}
+                          onDragEnd={this.handleDragEnd.bind(this, "defaultProjects")}
+                          onUseDefaultProjectsChange={e => {this.props.update({useDefaultProjects: e.target.checked})}}
+                          startEditingMobile={id => {
+                            this.changeView("edit", true, {id})
+                          }}
+                        />
+                      </Drawer>
+                    </React.Fragment>
+                  )
+                  :
+                  // working mode
+                  (
+                    allProjectsDone && (
+                      <div id="congratsDiv">
+                        <span id="congrats">
+                          CONGRATULATIONS!
+                        </span>
+                        <br/>
+                        You got {totalTimeWorkedString} worth of work done
+                        <br/>
+                        {
+                          productivityPercentage >= 0 && productivityPercentage <= 100 &&(
+                            <span>
+                              You were productive {productivityPercentage}% of the time
+                            </span>
+                          )
+                        }
+                      </div>
+                    )
+                  )
+                }
+                {this.state.showResetButton && (
+                  <Grid container justify="flex-end" alignItems="flex-end" style={{marginTop: "2rem"}}>
+                    <Button
+                      id="resetButton"
+                      onClick={this.resetState}
+                      variant="contained">
+                      Reset
+                    </Button>
+                  </Grid>
+                )}
+              </SettingsContext.Provider>
+            </Grid>
+            {!isMobile && (
+              <React.Fragment>
+                <Link id="linkToSettings" to="/settings" aria-label="Settings" title="Settings">
+                  <SettingsIcon />
+                </Link>
+                <DropdownMenu
+                  connect={this.props.connect}
+                  disconnect={this.props.disconnect}
+                  history={this.props.history}
+                  loggedIn={this.props.loggedIn}
+                />
+              </React.Fragment>
+            )}
+            <Slide
+              direction="right"
+              in={
+                !this.props.loggedIn &&
+                !this.state.temp.dontShowSignInYet &&
+                !this.state.temp.signInDissmissed &&
+                !localStorage.dontShowSignInPanelAgain &&
+                !this.props.disconnected
+              }
+              mountOnEnter unmountOnExit
+            >
+              <SignInPanel
+                connect={this.props.connect}
+                dismiss={this.handleSignInDismiss}
+                showDontRemindMeAgain={localStorage.userHasDismissedSignInBefore}
+                dontRemindMeAgain={this.handleSignInDontRemindMeAgain}
+              />
+            </Slide>
+            {isMobile && this.props.data.mode === "planning" && (
+              <AddFab
+                onClick={this.changeView.bind(this, "add", true)}
+              />
+            )}
+          </Grid>
+        )}
+      </IsMobileContext.Consumer>
     );
   }
 }

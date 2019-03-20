@@ -1,0 +1,8 @@
+.ColorPicker svg{
+  position: relative;
+  left: .6rem;
+}
+
+.colorInput{
+  display: none;
+}

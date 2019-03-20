@@ -6,12 +6,13 @@
 }
 
 .signInPanel, .signInPanelContainer{
-  height: 5rem;
+  min-height: 5rem;
   border-radius: 1rem;
 }
 
 .signInPanelContainer{
-  background-image: radial-gradient(#ffffff40, #ffffff59)
+  background-image: radial-gradient(#ffffff40, #ffffff59);
+  padding: .5rem;
 }
 
 .signInPanel .dismissButton{

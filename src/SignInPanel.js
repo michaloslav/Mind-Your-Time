@@ -5,7 +5,7 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
-import './signIn/SignIn.css'
+import './css/SignInPanel.css'
 
 export default class SignInPanel extends Component {
   constructor(props){

@@ -1,0 +1,30 @@
+#ProjectsTable{
+  min-width: 100vw;
+  position: relative;
+  right: 1rem;
+}
+
+.setNameCell input{
+  width: 6rem;
+}
+
+.setDurationCell input{
+  width: 5rem;
+}
+
+.setStartTimeCell{
+  padding-top: 1rem !important;
+}
+
+.setStartTimeLabelDiv{
+  position: absolute;
+  height: 0;
+  width: 0;
+}
+
+.setStartTimeCell label{
+  position: relative;
+  width: 10rem;
+  bottom: .8rem;
+  color: #000000a3;
+}

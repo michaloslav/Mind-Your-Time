@@ -1,0 +1,27 @@
+#linkToSettings, #dropdownMenuButton, #dropdownMenu svg{
+  color: #545454;
+}
+
+#linkToSettings, #dropdownMenuButton{
+  position: absolute;
+  top: 5rem;
+}
+
+#linkToSettings{
+  right: calc(1.4rem + 16px);
+}
+
+#dropdownMenuButton{
+  right: 0.05rem;
+  top: 4.3rem;
+  background-color: rgba(0, 0, 0, 0);
+  padding-left: 0;
+}
+
+#dropdownMenu li{
+  padding-left: 14px;
+}
+
+#dropdownMenu svg{
+  padding-right: .2rem;
+}

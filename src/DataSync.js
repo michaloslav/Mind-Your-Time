@@ -9,7 +9,7 @@ import * as SocketIOClient from 'socket.io-client'
 import Cookies from 'universal-cookie';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import green from '@material-ui/core/colors/green';
-import { defaultSettings } from './_defaultSettings'
+import { defaultSettings } from './util/_defaultSettings'
 import makeNewId from './util/makeNewId'
 
 const cookies = new Cookies()
@@ -49,7 +49,7 @@ export default class DataSync extends Component{
         if(this.state.accessToken) temp.showDisconnectedError = true
         this.setState({temp})
       }
-    }, 5)
+    }, 100)
 
     this.io.on("connect", data => {
       // if the user was previously disconnected and they're logged in, connect them
@@ -159,19 +159,21 @@ export default class DataSync extends Component{
       }
     }
 
-    this.setState(data)
+    this.setState(data);
 
     // if the user's logged in, connect to the server
-    setTimeout(() => {
-      let accessToken = cookies.get("accessToken")
-      if(accessToken){
-        if(this.io.disconnected) this.setState({accessToken})
-        else this.io.emit("connectInit", {type: "accessToken", accessToken, localData: data})
-      }
-    }, 5)
+    (data => {
+      setTimeout(() => {
+        let accessToken = cookies.get("accessToken")
+        if(accessToken){
+          if(this.io.disconnected) this.setState({accessToken})
+          else this.io.emit("connectInit", {type: "accessToken", accessToken, localData: data})
+        }
+      }, 5)
+    }).call(this, data)
   }
 
-  connect(idToken){
+  connect = idToken => {
     // if the user is offline or the server is down...
     if(this.io.disconnected){
       this.setState({temp: {...this.state.temp, showDisconnectedError: true}})
@@ -215,20 +217,21 @@ export default class DataSync extends Component{
     this.io.emit("connectInit", {type: "OAuth", idToken, localData})
   }
 
-  disconnect(){
-    // if the user is offline or the server is down...
-    if(this.io.disconnected){
-      this.setState({temp: {...this.state.temp, showDisconnectedError: true}})
-      return
-    }
+  disconnect = () => {
+    if(window.confirm("Are you sure you want to sign out?")){
+      // if the user is offline or the server is down...
+      if(this.io.disconnected){
+        this.setState({temp: {...this.state.temp, showDisconnectedError: true}})
+        return
+      }
 
-    this.io.emit("disconnectU", {accessToken: cookies.get("accessToken")})
+      this.io.emit("disconnectU", {accessToken: cookies.get("accessToken")})
+    }
   }
 
-  update(data, changes){
+  update = (data, changes) => {
     // handle reset
     if(data.projects && !data.projects.length && this.state.projects.length){
-      console.log("reset");
       if(data.useDefaultProjects || this.state.useDefaultProjects){
         data.projects = this.state.defaultProjects
 
@@ -259,10 +262,12 @@ export default class DataSync extends Component{
     }
 
     // assign order to projects
-    if(data.projects){
-      data.projects.forEach((project, i) => {
-        project.order = i
-      })
+    for(let arrId of ["projects", "defaultProjects"]){
+      if(data[arrId]){
+        data[arrId].forEach((project, i) => {
+          project.order = i
+        })
+      }
     }
 
     // last modified
@@ -304,7 +309,7 @@ export default class DataSync extends Component{
           localStorage["lastModified_" + el] = lastModified[el]
       }
     })
-    data.lastModified = {...this.state.lastModified, ...lastModified}
+    data.lastModified = {lastReset: this.state.lastModified.lastReset, ...lastModified}
 
     this.setState(data)
 
@@ -318,6 +323,7 @@ export default class DataSync extends Component{
 
     // send an update to the server
     if(this.state.accessToken && !this.io.disconnected){
+      console.log(data);
       this.io.emit("update", {accessToken: this.state.accessToken, data})
     }
   }
@@ -407,7 +413,7 @@ export default class DataSync extends Component{
       if(typeof changedIds !== "object") changedIds = [changedIds]
 
       changedIds.forEach(changedId => {
-        let index = array.findIndex(object => object.id === changedId)
+        let index = array.findIndex(object => object.id === parseInt(changedId))
         let changedObject = array[index]
 
         lastModified[changedId] = this.setLastModified(
@@ -447,6 +453,7 @@ export default class DataSync extends Component{
   }
 
   handleUpdateFromServer = data => {
+    console.log(data);
     // merge lastModified when saving to state
     this.setState({
       ...data,
@@ -504,9 +511,9 @@ export default class DataSync extends Component{
       <MuiThemeProvider theme={theme}>
         <Router
           data={data}
-          connect={this.connect.bind(this)}
-          update={this.update.bind(this)}
-          disconnect={this.disconnect.bind(this)}
+          connect={this.connect}
+          update={this.update}
+          disconnect={this.disconnect}
           loggedIn={Boolean(this.state.accessToken)}
           disconnected={this.state.temp.disconnected}
         />

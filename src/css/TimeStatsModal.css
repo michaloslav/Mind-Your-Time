@@ -1,0 +1,17 @@
+.TimeStatsModal{
+  margin: 1rem;
+}
+
+.TimeStatsModal .section{
+  padding-top: .5rem;
+}
+
+.TimeStatsModal b{
+  font-weight: 600;
+}
+
+.TimeStatsModal .helperIcon{
+  transform: scale(.8);
+  float: right;
+  padding: .25rem;
+}

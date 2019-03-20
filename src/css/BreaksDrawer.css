@@ -1,0 +1,8 @@
+.BreaksDrawer tr:last-child td{
+  padding-top: 1.5rem;
+  padding-bottom: 0.2rem;
+}
+
+.BreaksDrawer tr:nth-last-child(2) td{
+  border-bottom-color: #4848488c;
+}

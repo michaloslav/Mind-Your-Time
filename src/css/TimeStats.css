@@ -1,0 +1,12 @@
+.timeStatsSideGridItem{
+  min-width: 2.5rem;
+  text-align: center;
+}
+
+.timeStatsWarning{
+  color: #e41616f0 !important;
+}
+
+.timeStatsLabelDiv label{
+  bottom: 1.25rem;
+}

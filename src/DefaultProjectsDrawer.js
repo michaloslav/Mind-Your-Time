@@ -12,27 +12,32 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import Switch from '@material-ui/core/Switch';
+import './css/DefaultProjectsDrawer.css'
 
-export default function DefaultProjectsDrawer(props){
+const DefaultProjectsDrawer = props => {
+  let header = (
+    <React.Fragment>
+      <Grid>
+        <Typography variant="h6" className="drawerTitle">Repetitive projects:</Typography>
+      </Grid>
+      <Grid>
+        <label>
+          Use repetitive projects
+          <Switch
+            color="primary"
+            checked={props.useDefaultProjects && props.useDefaultProjects !== "false" /*handle string input*/}
+            onChange={props.onUseDefaultProjectsChange}
+            aria-label="Use default projects"
+          />
+        </label>
+      </Grid>
+    </React.Fragment>
+  )
+
   return (
     <React.Fragment>
-      <Grid container justify="space-between">
-        <Grid>
-          <Typography variant="h6">Repetitive projects:</Typography>
-        </Grid>
-        <Grid>
-          <label>
-            Use repetitive projects
-            <Switch
-              color="primary"
-              checked={props.useDefaultProjects && props.useDefaultProjects !== "false" /*handle string input*/}
-              onChange={props.onUseDefaultProjectsChange}
-              aria-label="Use default projects"
-            />
-          </label>
-        </Grid>
-      </Grid>
-      <Table>
+      {props.mobile ? header : <Grid container justify="space-between">{header}</Grid>}
+      <Table className="projectsTable">
         <TableHead>
           <TableRow>
             <TableCell/>
@@ -67,36 +72,46 @@ export default function DefaultProjectsDrawer(props){
                           onDoneEditing={props.onDoneEditing}
                           onProjectStateChange={props.onProjectStateChange}
                           onDeleteProject={props.onDeleteProject}
-                          dontCalculateState={true}
-                          dontShowTime={true}
+                          isDefaultProjects={true}
+                          startEditingMobile={props.startEditingMobile}
                         />
                       )}
                     </Draggable>
                     ))}
                   {provided.placeholder}
-                  <AddProjectRow
-                    settings={props.settings}
-                    defaultColorIndex={props.defaultColorIndex}
-                    showErrors={{}}
-                    lastProject={props.projects[props.projects.length - 1]}
-                    onAddProject={props.onAddProject}
-                    dontShowTime={true}
-                  />
+                  {
+                    !props.mobile && (
+                      <AddProjectRow
+                        settings={props.settings}
+                        defaultColorIndex={props.defaultColorIndex}
+                        showErrors={{}}
+                        lastProject={props.projects[props.projects.length - 1]}
+                        onAddProject={props.onAddProject}
+                        isDefaultProjects={true}
+                      />
+                    )
+                  }
                 </TableBody>
               </RootRef>
             )}
           </Droppable>
         </DragDropContext>
       </Table>
-      <Grid container justify="center">
-        <Button
-          onClick={props.onClose}
-          variant="contained"
-          color="primary"
-          style={{margin: ".5rem"}}>
-          Save
-        </Button>
-      </Grid>
+      {
+        !props.mobile && (
+          <Grid container justify="center">
+            <Button
+              onClick={props.onClose}
+              variant="contained"
+              color="primary"
+              style={{margin: ".5rem"}}>
+              Save
+            </Button>
+          </Grid>
+        )
+      }
     </React.Fragment>
   )
 }
+
+export default DefaultProjectsDrawer

@@ -1,0 +1,8 @@
+.deleteIconButton:hover{
+  color: #c70b0be6 !important;
+}
+
+.stateClassTooLate{
+  color: #e41616f0 !important;
+  font-weight: 500 !important;
+}

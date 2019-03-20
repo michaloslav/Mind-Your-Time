@@ -7,15 +7,12 @@ import MenuIcon from '@material-ui/icons/Menu';
 import CloseIcon from '@material-ui/icons/Close';
 import HelpIcon from '@material-ui/icons/Help';
 import GoogleIcon from './signIn/GoogleIcon'
+import './css/DropdownMenu.css'
 
 export default class DropdownMenu extends Component{
   constructor(props){
     super(props)
     this.state = {anchorEl: null}
-  }
-
-  open = e => {
-    this.setState({anchorEl: e.currentTarget})
   }
 
   close = () => {
@@ -46,7 +43,7 @@ export default class DropdownMenu extends Component{
           id="dropdownMenuButton"
           aria-owns={anchorEl ? 'dropdownMenu' : undefined}
           aria-haspopup="true"
-          onClick={this.open}
+          onClick={e => {this.setState({anchorEl: e.currentTarget})}}
         >
           <MenuIcon />
         </IconButton>

@@ -1,0 +1,84 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+a{
+  color: #272727;
+}
+
+footer{
+  position: absolute;
+  bottom: 0;
+  text-align: center;
+  width: 100%;
+  font-size: .9rem;
+  font-weight: 300;
+}
+
+a{
+  text-decoration: none;
+}
+
+.LinkToRoot{
+  position: absolute;
+  z-index: 100;
+}
+
+/* mobile */
+@media (max-width: 660px){
+  .projectsTable th:last-child,
+  .projectsTable td:last-child{
+    width: 3rem;
+    padding: 0;
+  }
+
+  .container{
+    min-height: calc(100vh - 8rem);
+    padding: 0 1rem 4rem 1rem;
+    position: relative;
+    margin-top: 4rem;
+  }
+
+  /* time picker */
+  div[role=dialog] > div:last-child > div{
+    margin: auto !important;
+  }
+
+  /* settings - first section header */
+  .Settings tr:first-child h5{
+    padding-top: 0 !important;
+  }
+  .Settings tr:first-child .sectionIconCell span{
+    top: .25rem !important;
+  }
+}
+
+/* desktop */
+@media (min-width: 661px){
+  .projectsTable th:last-child,
+  .projectsTable td:last-child{
+    width: 6rem;
+    padding: 0 1rem 0 0;
+  }
+
+  .container{
+    min-height: calc(100vh - 4rem);
+    padding: 0 1rem 4rem 1rem;
+    position: relative;
+  }
+
+  #ProjectsTable{
+    table-layout: fixed;
+  }
+}

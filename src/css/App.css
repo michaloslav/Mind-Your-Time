@@ -1,0 +1,88 @@
+.projectsTable{
+  table-layout: fixed;
+  white-space: nowrap;
+}
+
+.projectsTable th:first-child,
+.projectsTable td:first-child{
+  width: 3rem;
+  padding: 0 0 0 1rem;
+}
+
+.dragIcon{
+  cursor: grab;
+  color: #000000bf;
+}
+
+.timeStatsLabelDiv, #addProjectLabelDiv{
+  position: absolute;
+}
+
+.timeStatsLabelDiv label, #addProjectLabelDiv label{
+  position: relative;
+  width: 10rem;
+  color: #000000a3;
+  font-size: .8125rem;
+  font-weight: 400;
+}
+
+/* planning */
+#setEndTime{
+  margin: 2rem 0;
+}
+
+#setEndTime .TimeSetterDesktop label{
+  margin-right: 1rem
+}
+
+#setEndTime .TimeSetterDesktop input,
+#setEndTime .TimeSetterMobile input{
+  text-align: center;
+  margin: 0 .1rem;
+}
+
+#setEndTime .TimeSetterDesktop input{
+  width: 4rem;
+}
+
+#setEndTime .TimeSetterMobile input{
+  width: 5rem;
+}
+
+.setStartTimeCell input, #BreaksDrawer .TimeSetterDesktop input{
+  width: 4rem;
+  text-align: center;
+  margin: 0 .1rem;
+}
+
+#resetButton:hover{
+  background-color: #c70b0be6 !important;
+  color: white;
+}
+
+.planningSecondaryButton:hover{
+  background-color: rgba(3, 155, 229, 0.08) !important;
+}
+
+.drawerTitle{
+  padding: .5rem;
+}
+
+.BreaksView .title,
+.DefaultProjectsView .drawerTitle{
+  width: 100%;
+  text-align: center;
+}
+
+/* working */
+#congratsDiv{
+  margin-top: 2rem;
+  width: 100%;
+  text-align: center;
+  color: #00c853 !important;
+}
+
+#congrats{
+  font-size: 1.2rem;
+  font-weight: bold;
+}

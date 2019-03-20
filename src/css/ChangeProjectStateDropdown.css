@@ -1,0 +1,13 @@
+.ChangeProjectStateDropdownMenu{
+  color: rgba(0, 0, 0, 0.87);
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.00938em;
+}
+
+.ChangeProjectStateDropdownMenu svg{
+  padding-right: .25rem;
+  position: relative;
+  right: .25rem;
+}

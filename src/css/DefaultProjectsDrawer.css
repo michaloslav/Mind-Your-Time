@@ -1,0 +1,3 @@
+.defaultProjectsDrawerRemoveTransform > div {
+  transform: none !important;
+}

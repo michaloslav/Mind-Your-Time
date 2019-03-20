@@ -11,15 +11,13 @@ export default class GoogleSignIn extends Component {
     this.props.connect(res.tokenId)
   }
 
-  render(){
-    return (
-      <GoogleLogin
-        clientId="1070394852834-4nunul2jqv2pqn9du9ralgd61220d3c1.apps.googleusercontent.com"
-        buttonText="Sign In"
-        onSuccess={this.responseGoogle}
-        onFailure={this.responseGoogle}
-        render={this.props.render}
-      />
-    )
-  }
+  render = () => (
+    <GoogleLogin
+      clientId="1070394852834-4nunul2jqv2pqn9du9ralgd61220d3c1.apps.googleusercontent.com"
+      buttonText="Sign In"
+      onSuccess={this.responseGoogle}
+      onFailure={this.responseGoogle}
+      render={this.props.render}
+    />
+  )
 }

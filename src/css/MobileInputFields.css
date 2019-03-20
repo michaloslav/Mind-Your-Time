@@ -1,0 +1,36 @@
+.MobileInputFields .buttonTop{
+  position: absolute;
+  right: .25rem;
+}
+
+.MobileInputFields .title {
+  padding-top: 1rem;
+  text-align: center;
+}
+
+.MobileInputFields .durationAndStartTimeDiv{
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.MobileInputFields .durationAndStartTimeDiv > div:last-child{
+  float: left;
+}
+
+.MobileInputFields .durationAndStartTimeDiv label{
+  margin-right: .5rem;
+}
+
+.MobileInputFields .durationAndStartTimeDiv input{
+  width: 5rem;
+}
+
+.MobileInputFields .ColorPicker svg{
+  position: relative;
+  top: .65rem;
+  margin-left: .5rem;
+}
+
+.MobileInputFields .confirmDiv button{
+  margin-top: 2.5rem;
+}

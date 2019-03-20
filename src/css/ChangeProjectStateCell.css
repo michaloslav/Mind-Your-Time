@@ -1,0 +1,6 @@
+.ChangeProjectStateCell span.done{
+  text-align: center;
+  color: #00c853;
+  font-weight: 550;
+  font-size: .9rem;
+}

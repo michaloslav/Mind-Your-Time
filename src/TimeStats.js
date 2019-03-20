@@ -1,27 +1,35 @@
 import React, { Component } from 'react';
+import TimeStatsModal from './TimeStatsModal'
 import Grid from '@material-ui/core/Grid'
 import Tooltip from '@material-ui/core/Tooltip'
+import Dialog from '@material-ui/core/Dialog';
 import TimeCalc from './util/TimeCalc'
+import './css/TimeStats.css'
 
 export default class TimeStats extends Component {
   constructor(props){
     super(props)
     this.state = {
-      currentTimeAvailable: false // stores whether the currentTime has been set (to prevent unnecessary and useless calculation on load)
+      currentTimeAvailable: false, // stores whether the currentTime has been set (to prevent unnecessary and useless calculation on load)
+      modalOpen: false
     }
 
-    this.updateCurrentTime = this.updateCurrentTime.bind(this)
-
-    setInterval(this.updateCurrentTime, 1000)
+    this.currentTimeUpdateInterval = setInterval(this.updateCurrentTime, 1000)
   }
 
   componentDidMount(){
     this.updateCurrentTime()
   }
 
-  updateCurrentTime(){
+  componentWillUnmount(){
+    clearInterval(this.currentTimeUpdateInterval)
+  }
+
+  updateCurrentTime = () => {
     let currentTime = new Date()
     let m = currentTime.getMinutes()
+
+    this.setState({currentTimeAvailable: true})
 
     // if it's still the same minute, there's no need to update the clock
     // (and if this isn't the initial time setting)
@@ -33,10 +41,12 @@ export default class TimeStats extends Component {
     h = h % 12
     h = h === 0 ? 12 : h
 
-    this.setState({currentTimeAvailable: true})
-
     // update the state
     this.props.onCurrentTimeChange({h, m, pm})
+  }
+
+  openModal = () => {
+    this.setState({modalOpen: true})
   }
 
   render(){
@@ -51,12 +61,13 @@ export default class TimeStats extends Component {
           let durationLeft = parseInt(project.estimatedDuration)
 
           let progress = parseInt(project.progress)
-          if(progress){
-            if(progress > project.estimatedDuration) durationLeft = 0
-            else durationLeft -= progress
-          }
           if(project.state === "workingOnIt" && project.startedWorkingOnIt){
-            durationLeft -= TimeCalc.subtractToMinutes(this.props.currentTime, project.startedWorkingOnIt, true)
+            progress += TimeCalc.subtractToMinutes(this.props.currentTime, project.startedWorkingOnIt, true)
+          }
+
+          if(progress){
+            if(progress > durationLeft) durationLeft = 0
+            else durationLeft -= progress
           }
 
           totalProjectTime += durationLeft
@@ -108,16 +119,16 @@ export default class TimeStats extends Component {
 
     return (
       <React.Fragment>
-        <Grid item className={"timeStatsSideGridItem" + (timeNeededWarning ? " timeStatsWarning" : null)}>
+        <Grid item className={"timeStatsSideGridItem" + (timeNeededWarning ? " timeStatsWarning" : "")}>
           <Tooltip title={
             "Projects: " + TimeCalc.makeString(totalProjectTime, false) +
             ",\nBuffers: " + TimeCalc.makeString(totalBufferTime, false) +
-            ",\nBreaks: " + TimeCalc.makeString(totalBreakTime, false)
+            ",\nBreaks: " + TimeCalc.makeString(totalBreakTime, false) + " (click for more)"
           }>
-            <div>
+            <div onClick={this.openModal}>
               <div className="timeStatsLabelDiv">
-                <label style={{right: "1.42rem"}}>
-                  Time needed:
+                <label>
+                  {this.props.shortLabels ? "N" : "Time n"}eeded:
                 </label>
               </div>
               {TimeCalc.makeString(timeNeeded, false)}
@@ -129,14 +140,26 @@ export default class TimeStats extends Component {
             {TimeCalc.makeString(this.props.currentTime, true, false, this.props.settings.timeFormat24H)}
           </h4>
         </Grid>
-        <Grid item className={"timeStatsSideGridItem" + (timeRemainingWarning ? " timeStatsWarning" : null)}>
-          <div className="timeStatsLabelDiv">
-            <label style={{right: "1.825rem"}}>
-              Time remaining:
-            </label>
+        <Grid item className={"timeStatsSideGridItem" + (timeRemainingWarning ? " timeStatsWarning" : "")}>
+          <div onClick={this.openModal}>
+            <div className="timeStatsLabelDiv">
+              <label>
+                {this.props.shortLabels ? "R" : "Time r"}emaining:
+              </label>
+            </div>
+            {timeRemainingNegative ? "0:00" : TimeCalc.makeString(timeRemaining, false)}
           </div>
-          {timeRemainingNegative ? "0:00" : TimeCalc.makeString(timeRemaining, false)}
         </Grid>
+        <Dialog
+          open={this.state.modalOpen}
+          onClose={() => {this.setState({modalOpen: false})}}
+          aria-label="Time Stats Modal"
+        >
+          <TimeStatsModal
+            stats={{timeNeeded, totalProjectTime, totalBufferTime, totalBreakTime}}
+            {...this.props}
+          />
+        </Dialog>
       </React.Fragment>
     )
   }

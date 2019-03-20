@@ -1,4 +1,4 @@
-#addDefaultColor{
+.Settings #addDefaultColor{
   margin-left: .75rem;
 }
 
@@ -19,14 +19,15 @@
   position: absolute;
 }
 
-.removeDefaultColor{
+.Settings .removeDefaultColor{
   transform: scale(.5);
   position: relative;
-  bottom: .75rem;
-  right: 1rem;
+  bottom: .6rem;
+  right: .75rem;
+  padding: .5rem !important;
 }
 
-.removeDefaultColor:hover{
+.Settings .removeDefaultColor:hover{
   color: #c70b0be6;
 }
 
@@ -48,4 +49,15 @@
 
 .sectionIconCell span{
   top: 1.25rem;
+}
+
+@media (max-width: 660px){
+  .Settings td.value{
+    width: 3rem;
+    padding: .5rem;
+  }
+
+  .Settings td:last-child{
+    width: .5rem;
+  }
 }

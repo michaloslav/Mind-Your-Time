@@ -14,6 +14,7 @@ import AddIcon from '@material-ui/icons/Add';
 import TimeSetter from './TimeSetter'
 import TimeCalc from './util/TimeCalc'
 import makeNewId from './util/makeNewId'
+import './css/BreaksDrawer.css'
 
 export default class BreaksDrawer extends Component{
   constructor(props){
@@ -216,100 +217,98 @@ export default class BreaksDrawer extends Component{
   }
 
 
-  render(){
-    let rows = this.state.breaks.map((breakInfo, i) => {
-      return (
-        <TableRow key={breakInfo.id}>
-          <TableCell>
-            <Input
-              value={breakInfo.name}
-              onChange={this.handleInputChange.bind(this, breakInfo.id, "name")}
-              onKeyPress={this.handleEnterPress}
-            />
-          </TableCell>
-          <TableCell>
-            <TimeSetter
-              value={breakInfo.startTime}
-              onChange={this.handleTimeInputChange.bind(this, breakInfo.id, "startTime")}
-              onEnterPress={this.handleSave}
-            />
-          </TableCell>
-          <TableCell>
-            <TimeSetter
-              value={breakInfo.endTime}
-              onChange={this.handleTimeInputChange.bind(this, breakInfo.id, "endTime")}
-              onEnterPress={this.handleSave}
-              showError={this.state.showEndTimeErrors[breakInfo.id]}
-            />
-          </TableCell>
-          <TableCell>
-            <IconButton onClick={this.deleteBreak.bind(this, breakInfo.id)}>
-              <DeleteIcon />
-            </IconButton>
-          </TableCell>
-        </TableRow>
-      )
-    })
-
-    return (
-      <React.Fragment>
-        <Typography variant="h6">Breaks:</Typography>
-        <Table className="BreaksDrawer">
-          <TableHead>
-            <TableRow>
-              <TableCell>Name (optional)</TableCell>
-              <TableCell>Start</TableCell>
-              <TableCell>End</TableCell>
-              <TableCell/>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.length ? rows : (
-              <TableRow>
-                <TableCell colSpan={4}>You haven't set any breaks</TableCell>
+  render = () => (
+    <React.Fragment>
+      <Typography variant="h6" className="drawerTitle">
+        Breaks:
+      </Typography>
+      <Table className="BreaksDrawer">
+        <TableHead>
+          <TableRow>
+            <TableCell>Name (optional)</TableCell>
+            <TableCell>Start</TableCell>
+            <TableCell>End</TableCell>
+            <TableCell/>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {this.state.breaks.length ? (
+            this.state.breaks.map((breakInfo, i) => (
+              <TableRow key={breakInfo.id}>
+                <TableCell>
+                  <Input
+                    value={breakInfo.name}
+                    onChange={this.handleInputChange.bind(this, breakInfo.id, "name")}
+                    onKeyPress={this.handleEnterPress}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TimeSetter
+                    value={breakInfo.startTime}
+                    onChange={this.handleTimeInputChange.bind(this, breakInfo.id, "startTime")}
+                    onEnterPress={this.handleSave}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TimeSetter
+                    value={breakInfo.endTime}
+                    onChange={this.handleTimeInputChange.bind(this, breakInfo.id, "endTime")}
+                    onEnterPress={this.handleSave}
+                    showError={this.state.showEndTimeErrors[breakInfo.id]}
+                  />
+                </TableCell>
+                <TableCell>
+                  <IconButton onClick={this.deleteBreak.bind(this, breakInfo.id)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
               </TableRow>
-            )}
+            ))
+          ) : (
             <TableRow>
-              <TableCell>
-                <Input
-                  value={this.state.newBreak.name}
-                  onChange={this.handleInputChange.bind(this, "new", "name")}
-                  onKeyPress={this.handleEnterPressNew}
-                />
-              </TableCell>
-              <TableCell>
-                <TimeSetter
-                  value={this.state.newBreak.startTime}
-                  onChange={this.handleTimeInputChange.bind(this, "new", "startTime")}
-                  onEnterPress={this.addBreak}
-                />
-              </TableCell>
-              <TableCell>
-                <TimeSetter
-                  value={this.state.newBreak.endTime}
-                  onChange={this.handleTimeInputChange.bind(this, "new", "endTime")}
-                  onEnterPress={this.addBreak}
-                  showError={this.state.showEndTimeErrors.new}
-                />
-              </TableCell>
-              <TableCell>
-                <IconButton color="primary" onClick={this.addBreak}>
-                  <AddIcon />
-                </IconButton>
-              </TableCell>
+              <TableCell colSpan={4}>You haven't set any breaks</TableCell>
             </TableRow>
-          </TableBody>
-        </Table>
-        <Grid container justify="center">
-          <Button
-            onClick={this.handleSave.bind(this)}
-            variant="contained"
-            color="primary"
-            style={{margin: ".5rem"}}>
-            Save
-          </Button>
-        </Grid>
-      </React.Fragment>
-    )
-  }
+          )}
+          <TableRow>
+            <TableCell>
+              <Input
+                value={this.state.newBreak.name}
+                onChange={this.handleInputChange.bind(this, "new", "name")}
+                onKeyPress={this.handleEnterPressNew}
+              />
+            </TableCell>
+            <TableCell>
+              <TimeSetter
+                value={this.state.newBreak.startTime}
+                onChange={this.handleTimeInputChange.bind(this, "new", "startTime")}
+                onEnterPress={this.addBreak}
+              />
+            </TableCell>
+            <TableCell>
+              <TimeSetter
+                value={this.state.newBreak.endTime}
+                onChange={this.handleTimeInputChange.bind(this, "new", "endTime")}
+                onEnterPress={this.addBreak}
+                showError={this.state.showEndTimeErrors.new}
+              />
+            </TableCell>
+            <TableCell>
+              <IconButton color="primary" onClick={this.addBreak}>
+                <AddIcon />
+              </IconButton>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+      <Grid container justify="center">
+        <Button
+          onClick={this.handleSave.bind(this)}
+          variant="contained"
+          color="primary"
+          style={{margin: ".5rem"}}>
+          Save
+        </Button>
+      </Grid>
+    </React.Fragment>
+  )
 }

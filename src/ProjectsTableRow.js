@@ -14,7 +14,8 @@ import EditIcon from '@material-ui/icons/Edit';
 import DoneIcon from '@material-ui/icons/Done';
 import DeleteIcon from '@material-ui/icons/Delete';
 import { projectValidation, inputValidation } from './util/validation'
-import { SettingsContext } from './_Context'
+import { SettingsContext, IsMobileContext } from './_Context'
+import './css/ProjectsTableRow.css'
 
 export default class ProjectsTableRow extends Component {
   constructor(props){
@@ -29,12 +30,12 @@ export default class ProjectsTableRow extends Component {
       showErrors: {}
     }
 
-    if(!this.props.dontShowTime) defaultState.values.startTime = this.props.row.plannedTime.start
+    if(!this.props.isDefaultProjects) defaultState.values.startTime = this.props.row.plannedTime.start
 
     this.state = defaultState
   }
 
-  handleStartEditing(){
+  startEditing = () =>{
     let newState = {
       values: this.state.values
     }
@@ -42,7 +43,7 @@ export default class ProjectsTableRow extends Component {
 
     // get the startTime from props again in case it changed via drag n drop
     // (unless we're dealing with defaultProjects)
-    if(!this.props.dontShowTime){
+    if(!this.props.isDefaultProjects){
       newState.values.startTime = Object.assign({}, this.props.row.plannedTime.start)
     }
 
@@ -60,7 +61,7 @@ export default class ProjectsTableRow extends Component {
     this.setState(newState)
   }
 
-  handleStartTimeChange(id, val){
+  handleStartTimeChange = (id, val) => {
     let newState = {values: this.state.values, showErrors: this.state.showErrors}
 
     if(id === "object") newState.values.startTime = val
@@ -70,9 +71,9 @@ export default class ProjectsTableRow extends Component {
     this.setState(newState)
   }
 
-  handleDoneEditing = () => {
+  save = () => {
     // validation
-    let validation = projectValidation(this.state.values, this.props.dontShowTime)
+    let validation = projectValidation(this.state.values, this.props.isDefaultProjects)
     if(!validation.valid){
       let newState = this.state.showErrors
       validation.errors.forEach(error => {
@@ -86,13 +87,14 @@ export default class ProjectsTableRow extends Component {
     this.setState({editing: false})
   }
 
-  handleEnterPress = e => {if(e.key === "Enter") this.handleDoneEditing()}
+  handleKeyPress = e => {if(e.key === "Enter") this.save()}
 
   render(){
     let showEditing = this.state.editing && this.props.mode === "planning"
 
     let progress, stateClass, startIsTooLate, endIsTooLate, timeLeft
-    if(!this.props.dontCalculateState){
+    let tableRowStyle = {}
+    if(!this.props.isDefaultProjects){
       // calculate progress
       if(this.props.row.progress) progress = parseInt(this.props.row.progress)
       else progress = 0
@@ -105,122 +107,151 @@ export default class ProjectsTableRow extends Component {
 
       timeLeft = parseInt(this.props.row.estimatedDuration) - progressCapped
 
-      // get the stateClass - done, too late
+      // get the stateClass (too late or done) and tableRowStyle (to display progress)
       startIsTooLate = !TimeCalc.isBiggerThan(
         TimeCalc.add(this.props.row.plannedTime.start, progressCapped),
         this.props.currentTime, true, true)
       endIsTooLate = !TimeCalc.isBiggerThan(this.props.row.plannedTime.end, this.props.currentTime, true, true)
-      if(this.props.row.state === "done") stateClass = "stateClassDone"
-      else if(startIsTooLate && this.props.row.state !== "workingOnIt") stateClass = "stateClassTooLate"
+
+      let percentageDone
+
+      if(this.props.row.state === "done"){
+        percentageDone = 100
+        stateClass = "stateClassDone"
+      }
+      else{
+        if(startIsTooLate && this.props.row.state !== "workingOnIt") stateClass = "stateClassTooLate"
+        percentageDone = 100 * progressCapped / this.props.row.estimatedDuration
+      }
+
+      tableRowStyle = {
+        backgroundImage: `linear-gradient(to right, #00c8002e, #00c8002e ${percentageDone}%, transparent ${percentageDone}%, transparent 100%)`
+      }
     }
 
     return (
-      <RootRef rootRef={this.props.provided.innerRef}>
-        <TableRow {...this.props.provided.draggableProps}>
-          <TableCell>
-            <Icon className="dragIcon" {...this.props.provided.dragHandleProps}>drag_indicator</Icon>
-            <ColorPicker value={this.props.row.color} onChange={this.props.onColorChange.bind(this, this.props.row.id)}/>
-          </TableCell>
+      <IsMobileContext.Consumer>
+        {isMobile => (
+          <RootRef rootRef={this.props.provided.innerRef}>
+            <TableRow
+              {...this.props.provided.draggableProps}
+              style={/* merging the two style objects */{
+                ...this.props.provided.draggableProps.style,
+                ...tableRowStyle
+              }}
+            >
+              <TableCell>
+                <Icon className="dragIcon" {...this.props.provided.dragHandleProps}>drag_indicator</Icon>
+                <ColorPicker value={this.props.row.color} onChange={this.props.onColorChange.bind(this, this.props.row.id)}/>
+              </TableCell>
 
-          <TableCell className={showEditing ? "setNameCell" : stateClass}>
-            {showEditing ? (
-              <Input
-                value={this.state.values.name}
-                onChange={this.handleInputChange.bind(this, "name")}
-                placeholder="Name"
-                aria-label="Name"
-                error={this.state.showErrors.name}
-                onKeyPress={this.handleEnterPress}
-              />
-            ) : this.props.row.name}
-          </TableCell>
-
-          <TableCell className={showEditing ? "setDurationCell" : null}>
-            {showEditing ? (
-              <Input
-                value={this.state.values.duration}
-                onChange={this.handleInputChange.bind(this, "duration")}
-                placeholder="Duration"
-                aria-label="Duration"
-                error={this.state.showErrors.duration}
-                onKeyPress={this.handleEnterPress}
-              />
-            ) : (
-              progress && this.props.row.state !== "done" ? (
-                <Tooltip title={progress + "/" + this.props.row.estimatedDuration + " done"}>
-                  <span>
-                    {timeLeft} minutes left
-                  </span>
-                </Tooltip>
-              ) : (
-                this.props.row.estimatedDuration + " minutes"
-              )
-            )}
-          </TableCell>
-
-          {!this.props.dontShowTime && (showEditing ? (
-            <SetStartTimeCell
-              value={this.state.values.startTime}
-              onChange={this.handleStartTimeChange.bind(this)}
-              firstInputId={"changeStartTimeInput" + this.props.row.id}
-              hError={this.state.showErrors.startTimeH}
-              mError={this.state.showErrors.startTimeM}
-              onEnterPress={this.handleDoneEditing}
-            />
-          ) : (
-            <SettingsContext.Consumer>
-              {settings => (
-                <TableCell className={showEditing ? "setStartTimeCell" : null}>
-                  <span className={startIsTooLate && stateClass === "stateClassTooLate"  ? stateClass : null}>
-                    {TimeCalc.makeString(this.props.row.plannedTime.start,
-                      this.props.row.plannedTime.start.pm !== this.props.row.plannedTime.end.pm,
-                      true,
-                      settings.timeFormat24H
-                    ) /*showPmOrAm only if it's different from the endTime*/}
-                  </span>
-                  <span className={startIsTooLate && endIsTooLate && stateClass === "stateClassTooLate" ? stateClass : null}>
-                    -
-                  </span>
-                  <span className={endIsTooLate && stateClass !== "stateClassDone" ? "stateClassTooLate" : null}>
-                    {TimeCalc.makeString(this.props.row.plannedTime.end, true, false, settings.timeFormat24H)}
-                  </span>
+              <TableCell className={showEditing ? "setNameCell" : stateClass}>
+                {showEditing ? (
+                  <Input
+                    value={this.state.values.name}
+                    onChange={this.handleInputChange.bind(this, "name")}
+                    placeholder="Name"
+                    aria-label="Name"
+                    error={this.state.showErrors.name}
+                    onKeyPress={this.handleKeyPress}
+                  />
+                ) : this.props.row.name}
+              </TableCell>
+              {(!isMobile || this.props.isDefaultProjects) && (
+                <TableCell className={showEditing ? "setDurationCell" : null}>
+                  {showEditing ? (
+                    <Input
+                      value={this.state.values.duration}
+                      onChange={this.handleInputChange.bind(this, "duration")}
+                      placeholder="Duration"
+                      aria-label="Duration"
+                      error={this.state.showErrors.duration}
+                      onKeyPress={this.handleKeyPress}
+                    />
+                  ) : (
+                    progress && this.props.row.state !== "done" ? (
+                      <Tooltip title={progress + "/" + this.props.row.estimatedDuration + " done"}>
+                        <span>
+                          {timeLeft} minutes left
+                        </span>
+                      </Tooltip>
+                    ) : (
+                      this.props.row.estimatedDuration + " minutes"
+                    )
+                  )}
                 </TableCell>
               )}
-            </SettingsContext.Consumer>
-          ))}
 
-          {this.props.mode === "planning" ? (
-            <TableCell>
-              {showEditing ? (
-                <IconButton
-                  aria-label="Save changes"
-                  onClick={this.handleDoneEditing}
-                  color="primary">
-                  <DoneIcon />
-                </IconButton>
+              {!this.props.isDefaultProjects && (showEditing ? (
+                <SetStartTimeCell
+                  value={this.state.values.startTime}
+                  onChange={this.handleStartTimeChange}
+                  firstInputId={"changeStartTimeInput" + this.props.row.id}
+                  hError={this.state.showErrors.startTimeH}
+                  mError={this.state.showErrors.startTimeM}
+                  onEnterPress={this.save}
+                />
               ) : (
-                <IconButton
-                  aria-label="Edit the project"
-                  onClick={this.handleStartEditing.bind(this)}>
-                  <EditIcon />
-                </IconButton>
+                <SettingsContext.Consumer>
+                  {settings => (
+                    <TableCell className={showEditing ? "setStartTimeCell" : null}>
+                      <span className={startIsTooLate && stateClass === "stateClassTooLate"  ? stateClass : null}>
+                        {TimeCalc.makeString(this.props.row.plannedTime.start,
+                          this.props.row.plannedTime.start.pm !== this.props.row.plannedTime.end.pm,
+                          true,
+                          settings.timeFormat24H
+                        ) /*showPmOrAm only if it's different from the endTime*/}
+                      </span>
+                      <span className={startIsTooLate && endIsTooLate && stateClass === "stateClassTooLate" ? stateClass : null}>
+                        -
+                      </span>
+                      <span className={endIsTooLate && stateClass !== "stateClassDone" ? "stateClassTooLate" : null}>
+                        {TimeCalc.makeString(this.props.row.plannedTime.end, true, false, settings.timeFormat24H)}
+                      </span>
+                    </TableCell>
+                  )}
+                </SettingsContext.Consumer>
+              ))}
+
+              {this.props.mode === "planning" ? (
+                <TableCell>
+                  {showEditing ? (
+                    <IconButton
+                      aria-label="Save changes"
+                      onClick={this.save}
+                      color="primary">
+                      <DoneIcon />
+                    </IconButton>
+                  ) : (
+                    <IconButton
+                      aria-label="Edit the project"
+                      onClick={isMobile ? this.props.startEditingMobile.bind(this, this.props.row.id) : this.startEditing}>
+                      <EditIcon />
+                    </IconButton>
+                  )}
+                  {
+                    !isMobile && (
+                      <IconButton
+                        aria-label="Delete the project"
+                        onClick={this.props.onDeleteProject.bind(this, this.props.row.id)}
+                        className="deleteIconButton">
+                        <DeleteIcon />
+                      </IconButton>
+                    )
+                  }
+                </TableCell>
+              ) : (
+                <ChangeProjectStateCell
+                  row={this.props.row}
+                  onProjectStateChange={this.props.onProjectStateChange}
+                  currentTime={this.props.currentTime}
+                  isMobile={isMobile}
+                />
               )}
-              <IconButton
-                aria-label="Delete the project"
-                onClick={this.props.onDeleteProject.bind(this, this.props.row.id)}
-                className="deleteIconButton">
-                <DeleteIcon />
-              </IconButton>
-            </TableCell>
-          ) : (
-            <ChangeProjectStateCell
-              row={this.props.row}
-              onProjectStateChange={this.props.onProjectStateChange}
-              currentTime={this.props.currentTime}
-            />
-          )}
-        </TableRow>
-      </RootRef>
+            </TableRow>
+          </RootRef>
+        )}
+      </IsMobileContext.Consumer>
     )
   }
 }

@@ -185,8 +185,23 @@ export default class TimeCalc {
 
     return this.toTimeObject(average)
   }
-}
 
+  static makeFullLengthDurationString(time){
+    let h = parseInt(time.h)
+    let m = parseInt(time.m)
+    if(time.pm) h += 12
+
+    let string = ""
+    if(h) string += h + " hour"
+    if(h > 1) string += "s"
+    if(h && m) string += " and "
+    if(m) string += m + " minute"
+    if(m > 2) string += "s"
+    if(!h && !m) string = "0 minutes"
+
+    return string
+  }
+}
 
 // takes ordered projects and sets appropriate times for each of them
 export function setTimesForProjects(projects, settings, breaks, startTime){
@@ -206,11 +221,15 @@ export function setTimesForProjects(projects, settings, breaks, startTime){
   breaks = JSON.parse(JSON.stringify(breaks))
 
   // calculate middleTimes beforehand to avoid multiple executions of the same code (-> improves performance)
-  let middleTimes = {projects: [], breaks: []}
-  for(let i = 0; i < projects.length; i++) middleTimes.projects[i] = TimeCalc.average(projects[i].plannedTime.start, projects[i].plannedTime.end)
-  for(let i = 0; i < breaks.length; i++) middleTimes.breaks[i] = TimeCalc.average(breaks[i].startTime, breaks[i].endTime)
+  if(breaks.length){
+    var middleTimes = {projects: [], breaks: []}
+    for(let i = 0; i < projects.length; i++) middleTimes.projects[i] = TimeCalc.average(projects[i].plannedTime.start, projects[i].plannedTime.end)
+    for(let i = 0; i < breaks.length; i++) middleTimes.breaks[i] = TimeCalc.average(breaks[i].startTime, breaks[i].endTime)
+  }
 
   for(let i = 0; i < projects.length; i++){
+
+    if(!projects[i].plannedTime) projects[i].plannedTime = {}
 
     // unless this is the first project, adjust the startTime
     if(i !== 0){

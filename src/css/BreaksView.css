@@ -1,0 +1,5 @@
+.BreaksView th:last-child,
+.BreaksView td:last-child{
+  width: 3rem;
+  padding: 0;
+}

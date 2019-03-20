@@ -12,7 +12,10 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Icon from '@material-ui/core/Icon'
-import './Settings.css'
+import { Link } from "react-router-dom";
+import { IsMobileContext } from './_Context'
+import withDefaultColorsEditing from './HOCs/withDefaultColorsEditing'
+import './css/Settings.css'
 
 const sectionInfo = {
   general: {
@@ -107,7 +110,7 @@ const inputInfo = {
   }
 }
 
-export default class Settings extends Component{
+class Settings extends Component{
   constructor(props){
     super(props)
     this.state = {
@@ -146,25 +149,7 @@ export default class Settings extends Component{
     this.setState({newState})
   }
 
-  handleDefaultColorChange(i, val){
-    let newState = this.state.inputs.defaultColors
-    newState[i] = val
-    this.setState({inputs: {...this.state.inputs, defaultColors: newState}})
-  }
-
-  handleAddDefaultColor(){
-    let newState = this.state.inputs.defaultColors
-    newState.push("#000000")
-    this.setState({inputs: {...this.state.inputs, defaultColors: newState}})
-  }
-
-  handleRemoveDefaultColor(i){
-    let newState = this.state.inputs.defaultColors
-    newState.splice(i, 1)
-    this.setState({inputs: {...this.state.inputs, defaultColors: newState}})
-  }
-
-  handleSave(){
+  save = () => {
     // validation (for empty percentage)
     let inputs = this.state.inputs
     let keys = Object.keys(inputs)
@@ -181,7 +166,7 @@ export default class Settings extends Component{
     this.props.history.push("/")
   }
 
-  handleResetToDefault(){
+  resetToDefault = () => {
     if(window.confirm("Are you sure you want to reset your settings back to default?")){
       this.setState({inputs: this.props.defaultSettings})
       this.props.update({settings: this.props.defaultSettings})
@@ -212,33 +197,47 @@ export default class Settings extends Component{
           <TableCell>
             Default colors:
           </TableCell>
-          <TableCell id="defaultColorsCell">
-            {
-              this.state.inputs.defaultColors.map((color, i) => (
-                <div key={i}>
-                  <ColorPicker
-                    value={this.state.inputs.defaultColors[i]}
-                    onChange={this.handleDefaultColorChange.bind(this, i)}
-                  />
-                  <div className="removeDefaultColorDiv">
-                    <IconButton
-                      aria-label="Remove the color"
-                      className="removeDefaultColor"
-                      disableRipple={true}
-                      onClick={this.handleRemoveDefaultColor.bind(this, i)}>
-                      <Icon>remove</Icon>
-                    </IconButton>
-                  </div>
-                </div>
-              ))
-            }
-            <IconButton
-              id="addDefaultColor"
-              aria-label="Add a new default color"
-              onClick={this.handleAddDefaultColor.bind(this)}>
-              <Icon>add</Icon>
-            </IconButton>
-          </TableCell>
+          <IsMobileContext.Consumer>
+            {isMobile => (
+              isMobile ? (
+                <TableCell className="value">
+                  <Link to="/settings/defaultColors" aria-label="Set default colors">
+                    <Button variant="outlined">
+                      Set
+                    </Button>
+                  </Link>
+                </TableCell>
+              ) : (
+                <TableCell id="defaultColorsCell" className="value">
+                  {
+                    this.state.inputs.defaultColors.map((color, i) => (
+                      <div key={i}>
+                        <ColorPicker
+                          value={color}
+                          onChange={this.props.onDefaultColorChange.bind(this, i)}
+                        />
+                        <div className="removeDefaultColorDiv">
+                          <IconButton
+                            aria-label="Remove the color"
+                            className="removeDefaultColor"
+                            disableRipple={true}
+                            onClick={this.props.removeDefaultColor.bind(this, i)}>
+                            <Icon>remove</Icon>
+                          </IconButton>
+                        </div>
+                      </div>
+                    ))
+                  }
+                  <IconButton
+                    id="addDefaultColor"
+                    aria-label="Add a new default color"
+                    onClick={this.props.addDefaultColor}>
+                    <Icon>add</Icon>
+                  </IconButton>
+                </TableCell>
+              )
+            )}
+          </IsMobileContext.Consumer>
           <TableCell className="rightCell" />
         </TableRow>
       )
@@ -256,13 +255,13 @@ export default class Settings extends Component{
             <TableCell>
               {inputInfo[el].label}
               {inputInfo[el].tooltip && (
-                <Tooltip title={inputInfo[el].tooltip}>
+                <Tooltip title={inputInfo[el].tooltip} disableFocusListener disableTouchListener>
                   <Icon className="tooltipIcon">help</Icon>
                 </Tooltip>
               )}
               :
             </TableCell>
-            <TableCell>
+            <TableCell className="value">
               {
                 inputInfo[el].type === "boolean" ? (
                   <Switch
@@ -299,12 +298,11 @@ export default class Settings extends Component{
             <TableCell className="sectionIconCell">
               <Icon>{sectionInfo[inputInfo[el].section].icon}</Icon>
             </TableCell>
-            <TableCell colSpan={2}>
+            <TableCell colSpan={3}>
               <Typography variant="h5" style={{paddingTop: "2.5rem"}}>
                 {sectionInfo[inputInfo[el].section].label}:
               </Typography>
             </TableCell>
-            <TableCell className="rightCell" />
           </TableRow>
           {tableRow}
         </React.Fragment>
@@ -312,7 +310,7 @@ export default class Settings extends Component{
     })
 
     return (
-      <div className="Settings">
+      <div className="Settings container">
         <Table>
           <TableBody>
             {inputs.map(input => input)}
@@ -325,7 +323,7 @@ export default class Settings extends Component{
                 >
                   <Grid>
                     <Button
-                      onClick={this.handleSave.bind(this)}
+                      onClick={this.save}
                       variant="contained"
                       color="primary">
                       Save
@@ -333,7 +331,7 @@ export default class Settings extends Component{
                   </Grid>
                   <Grid>
                     <Button
-                      onClick={this.handleResetToDefault.bind(this)}
+                      onClick={this.resetToDefault}
                       variant="contained">
                       Reset to default
                     </Button>
@@ -347,3 +345,5 @@ export default class Settings extends Component{
     )
   }
 }
+
+export default withDefaultColorsEditing(Settings)

@@ -1,0 +1,8 @@
+.SetProgressPopoverContent{
+  padding-left: .5rem
+}
+
+.SetProgressPopoverContent input{
+  width: 2rem;
+  text-align: right;
+}
