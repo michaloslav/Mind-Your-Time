@@ -54,7 +54,11 @@ export default class DataSync extends Component{
     this.io.on("connect", data => {
       // if the user was previously disconnected and they're logged in, connect them
       if(!this.state.temp.successfulConnectInit && this.state.temp.disconnected && this.state.accessToken){
-        let localData = this.state.temp.updatedWhileDisconnected ? this.getData() : {}
+        let localData
+        if(!this.state.temp.successfulConnectInit || this.state.temp.updatedWhileDisconnected){
+          localData = this.getData()
+        }
+        else localData = {}
         this.io.emit("connectInit", {
           type: "accessToken", accessToken: this.state.accessToken, localData
         })
@@ -502,7 +506,10 @@ export default class DataSync extends Component{
     else keys = Object.keys(obj1)
 
     for(let key of keys){
-      if(typeof obj1[key] === "object") if(!this.areIdenticalObjects(obj1[key], obj2[key])) return false
+      if(obj1.h == 8) debugger
+      if(typeof obj1[key] === "object"){
+        if(!this.areIdenticalObjects(obj1[key], obj2[key])) return false
+      }
       else if(obj1[key] !== obj2[key]) return false
     }
 

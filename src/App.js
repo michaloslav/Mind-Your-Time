@@ -483,7 +483,7 @@ export default class App extends Component {
     if(val === "paused" && !isNaN(parseInt(progress))) changedProject.progress = progress
 
     // if it's being changed to workingOnIt, save current time
-    if(val === "workingOnIt") changedProject.startedWorkingOnIt = this.props.currentTime
+    if(val === "workingOnIt") changedProject.startedWorkingOnIt = Object.assign({}, this.props.currentTime)
 
     let changes = {projects: [id]}
 
