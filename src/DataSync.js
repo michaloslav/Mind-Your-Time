@@ -506,7 +506,6 @@ export default class DataSync extends Component{
     else keys = Object.keys(obj1)
 
     for(let key of keys){
-      if(obj1.h == 8) debugger
       if(typeof obj1[key] === "object"){
         if(!this.areIdenticalObjects(obj1[key], obj2[key])) return false
       }
