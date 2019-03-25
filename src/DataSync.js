@@ -116,7 +116,7 @@ export default class DataSync extends Component{
 
   componentDidMount(){
     let objectsToLoad = ["projects", "breaks", "defaultProjects", "settings", "startTime", "endTime"]
-    let propertiesToLoad = ["mode", "defaultColorIndex", "defaultColorIndexDefaultProjects", "productivityPercentage", "useDefaultProjects"]
+    let propertiesToLoad = ["mode", "defaultColorIndex", "defaultColorIndexDefaultProjects", "productivityPercentage", "useDefaultProjects", "lastReset"]
 
     let defaultValues = {
       projects: [],
@@ -129,7 +129,8 @@ export default class DataSync extends Component{
       defaultColorIndex: 0,
       defaultColorIndexDefaultProjects: 0,
       productivityPercentage: undefined,
-      useDefaultProjects: true
+      useDefaultProjects: true,
+      lastReset: undefined
     }
 
 
@@ -253,15 +254,21 @@ export default class DataSync extends Component{
 
         // set the startTime
         data.startTime = startTime
+
+        var setLastModifiedOfAllProjects = true
       }
       else data.projects = []
 
       data.breaks = []
-      data.lastReset = new Date()
+      data.lastReset = new Date().toISOString()
       data.productivityPercentage = undefined
 
-      // delete the project/break lastModified fields in localStorage and state
-      this.setState({lastModified: {...this.state.lastModified, projects: {}, breaks: {}}})
+      // reset lastModified
+      if(!data.lastModified) data.lastModified = {}
+      data.lastModified.projects = {}
+      data.lastModified.breaks = {}
+
+      // delete the project/break lastModified fields in localStorage
       this.deleteObjectsLocalStorage("lastModified_projects_")
       this.deleteObjectsLocalStorage("lastModified_breaks_")
     }
@@ -282,7 +289,7 @@ export default class DataSync extends Component{
         case "projects":
           lastModified.projects = this.setMultipleLastModified(
             data.projects,
-            changes ? changes.projects : undefined,
+            changes && !setLastModifiedOfAllProjects ? changes.projects : undefined,
             "projects"
           )
           break;
@@ -305,16 +312,16 @@ export default class DataSync extends Component{
           Object.keys(data.settings).forEach(el => {
             if(data.settings[el] !== this.state.settings[el]){
               lastModified.settings[el] = new Date()
-              localStorage["lastModified_settings_" + el] = lastModified.settings[el]
+              localStorage["lastModified_settings_" + el] = lastModified.settings[el].toISOString()
             }
           })
           break;
         default:
           lastModified[el] = new Date()
-          localStorage["lastModified_" + el] = lastModified[el]
+          localStorage["lastModified_" + el] = lastModified[el].toISOString()
       }
     })
-    data.lastModified = {lastReset: this.state.lastModified.lastReset, ...lastModified}
+    data.lastModified = lastModified
 
     this.setState(data)
 
@@ -365,7 +372,7 @@ export default class DataSync extends Component{
     if(!object){
       lastModified = {id: new Date()}
       let localStorageKey = ["lastModified", key, objectId, "id"].join("_")
-      localStorage[localStorageKey] = lastModified.id
+      localStorage[localStorageKey] = lastModified.id.toISOString()
 
       this.deleteObjectsLocalStorage(["lastModified", key, objectId, ""].join("_"), localStorageKey)
 
@@ -398,7 +405,7 @@ export default class DataSync extends Component{
         lastModified[property] = new Date()
 
         let localStorageKey = ["lastModified", key, objectId, property].join("_")
-        localStorage[localStorageKey] = lastModified[property]
+        localStorage[localStorageKey] = lastModified[property].toISOString()
       }
     })
 
@@ -480,14 +487,21 @@ export default class DataSync extends Component{
             lastModifiedKey === "breaks" ||
             lastModifiedKey ==="defaultProjects"
           ){
-            Object.keys(data.lastModified[lastModifiedKey]).forEach(objectIdKey => {
+            for(let objectIdKey of Object.keys(data.lastModified[lastModifiedKey])){
+              if(typeof data.lastModified[lastModifiedKey][objectIdKey] !== "object") continue
               Object.keys(data.lastModified[lastModifiedKey][objectIdKey]).forEach(propertyKey => {
                 let localStorageKey = ["lastModified", lastModifiedKey, objectIdKey, propertyKey].join("_")
-                localStorage[localStorageKey] = data.lastModified[lastModifiedKey][objectIdKey][propertyKey]
+                let dateString = data.lastModified[lastModifiedKey][objectIdKey][propertyKey]
+                if(typeof dateString !== "string") dateString = dateString.toISOString()
+                localStorage[localStorageKey] = dateString
               })
-            })
+            }
           }
-          else localStorage["lastModified_" + lastModifiedKey] = data.lastModified[lastModifiedKey]
+          else{
+            let dateString = data.lastModified[lastModifiedKey]
+            if(typeof dateString !== "string") dateString = dateString.toISOString()
+            localStorage["lastModified_" + lastModifiedKey] = dateString
+          }
         })
       }
       else{

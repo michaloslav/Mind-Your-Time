@@ -8,7 +8,7 @@ export default class GoogleSignIn extends Component {
       return
     }
 
-    this.props.connect(res.tokenId)
+    if(window.confirm("Data syncing is still under construction and may not work properly all the time yet. Are you sure you want to continue?")) this.props.connect(res.tokenId)
   }
 
   render = () => (

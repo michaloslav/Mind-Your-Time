@@ -43,7 +43,7 @@ const AddProjectRow = props => (
         onKeyPress={props.onKeyPress}
       /> minutes
     </TableCell>
-    {!props.isDefaultProjects && (
+    {props.type !== "default" && (
       <SetStartTimeCell
         onChange={props.onStartTimeChange}
         value={props.inputValues.startTime}

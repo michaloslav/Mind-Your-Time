@@ -87,7 +87,7 @@ const DefaultProjectsDrawer = props => {
                         showErrors={{}}
                         lastProject={props.projects[props.projects.length - 1]}
                         onAddProject={props.onAddProject}
-                        isDefaultProjects={true}
+                        type="default"
                       />
                     )
                   }

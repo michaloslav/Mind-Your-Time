@@ -76,12 +76,14 @@ const TimeStatsModal = props => {
 
   // push the unproductive time so far to the doughnutData
   let unproductiveTime = totalTimePassed - totalDoneTimeSoFar
+  unproductiveTime = Math.round(unproductiveTime / roundTo) * roundTo
   addToDoughnutData(doughnutData, {name: "Unproductive time", color: "#aaa"}, unproductiveTime)
 
   // finish calculating the predictedUnproductiveTime
   for(let el of props.breaks){
     predictedUnproductiveTime += TimeCalc.subtractToMinutes(el.endTime, el.startTime, true)
   }
+  predictedUnproductiveTime = Math.round(predictedUnproductiveTime / roundTo) * roundTo
 
   doughnutData.datasets[1].backgroundColor.push("#aaa")
   doughnutData.datasets[1].data.push(predictedUnproductiveTime)
@@ -150,7 +152,7 @@ const TimeStatsModal = props => {
           <Doughnut
             data={doughnutData}
             width={250}
-            height={250}
+            height={200 + doughnutData.datasets[0].data.length * 4}
             options={{maintainAspectRatio: false, legend: {position: "bottom"}}}
           />
         </div>

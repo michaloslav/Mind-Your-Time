@@ -91,7 +91,7 @@ export default class AppRouter extends Component {
 
     return (
       <Router>
-        <div>
+        <div style={{position: "relative"}}>
           {
             isMobile ? (
                 <Navbar
