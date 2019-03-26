@@ -473,7 +473,10 @@ export default class DataSync extends Component{
             lastModifiedKey ==="defaultProjects"
           ){
             for(let objectIdKey of Object.keys(data.lastModified[lastModifiedKey])){
-              if(typeof data.lastModified[lastModifiedKey][objectIdKey] !== "object") continue
+              if(
+                !data.lastModified[lastModifiedKey][objectIdKey] ||
+                typeof data.lastModified[lastModifiedKey][objectIdKey] !== "object"
+              ) continue
               Object.keys(data.lastModified[lastModifiedKey][objectIdKey]).forEach(propertyKey => {
                 let localStorageKey = ["lastModified", lastModifiedKey, objectIdKey, propertyKey].join("_")
                 let dateString = data.lastModified[lastModifiedKey][objectIdKey][propertyKey]

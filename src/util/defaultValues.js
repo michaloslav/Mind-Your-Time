@@ -29,5 +29,6 @@ export const defaultDataValues = {
   defaultColorIndexDefaultProjects: 0,
   productivityPercentage: undefined,
   useDefaultProjects: true,
-  lastReset: undefined
+  lastReset: undefined,
+  lastModified: {}
 }
