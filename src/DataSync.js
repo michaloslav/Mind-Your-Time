@@ -9,7 +9,7 @@ import * as SocketIOClient from 'socket.io-client'
 import Cookies from 'universal-cookie';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import green from '@material-ui/core/colors/green';
-import { defaultSettings } from './util/_defaultSettings'
+import { defaultSettings, defaultDataValues } from './util/defaultValues'
 import makeNewId from './util/makeNewId'
 
 const cookies = new Cookies()
@@ -36,7 +36,8 @@ export default class DataSync extends Component{
       temp: {}
     }
 
-    this.io = SocketIOClient.connect('https://mind-your-time-server.herokuapp.com')
+    //this.io = SocketIOClient.connect('https://mind-your-time-server.herokuapp.com')
+    this.io = SocketIOClient.connect('localhost:3000')
 
     setTimeout(() => {
       // check if the user is offline
@@ -118,22 +119,6 @@ export default class DataSync extends Component{
     let objectsToLoad = ["projects", "breaks", "defaultProjects", "settings", "startTime", "endTime"]
     let propertiesToLoad = ["mode", "defaultColorIndex", "defaultColorIndexDefaultProjects", "productivityPercentage", "useDefaultProjects", "lastReset"]
 
-    let defaultValues = {
-      projects: [],
-      breaks: [],
-      defaultProjects: [],
-      settings: defaultSettings,
-      startTime: {h: 2, m: "00", pm: true},
-      endTime: {h: 9, m: "00", pm: true},
-      mode: "planning",
-      defaultColorIndex: 0,
-      defaultColorIndexDefaultProjects: 0,
-      productivityPercentage: undefined,
-      useDefaultProjects: true,
-      lastReset: undefined
-    }
-
-
     let data = {}
 
     objectsToLoad.forEach(el => {
@@ -142,12 +127,12 @@ export default class DataSync extends Component{
       }
       catch(e){
         // set default (if data from localStorage can't be used)
-        data[el] = defaultValues[el]
+        data[el] = defaultDataValues[el]
       }
     })
 
     propertiesToLoad.forEach(el => {
-      data[el] = localStorage[el] ? localStorage[el] : defaultValues[el]
+      data[el] = localStorage[el] ? localStorage[el] : defaultDataValues[el]
     })
 
     // load lastModified

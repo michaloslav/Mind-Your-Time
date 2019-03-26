@@ -1,15 +1,20 @@
 import React, { Component } from 'react';
+import DevOptionsResetDialog from './DevOptionsResetDialog';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
+import Dialog from '@material-ui/core/Dialog';
 import DeveloperModeIcon from '@material-ui/icons/DeveloperMode';
 
 export default class DevOptions extends Component{
   constructor(props){
     super(props)
-    this.state = {anchorEl: null}
+    this.state = {
+      anchorEl: null,
+      resetDialogOpen: false
+    }
   }
 
   open = e => this.setState({anchorEl: e.currentTarget})
@@ -89,6 +94,18 @@ export default class DevOptions extends Component{
         <MenuItem onClick={this.import}>
           Import
         </MenuItem>
+        <MenuItem onClick={() => this.setState({resetDialogOpen: true})}>
+          Reset
+        </MenuItem>
+        <Dialog
+          open={this.state.resetDialogOpen}
+          onClose={() => this.setState({resetDialogOpen: false})}
+        >
+          <DevOptionsResetDialog
+            dataItems={Object.keys(this.props.data).sort()}
+            update={this.props.update}
+          />
+        </Dialog>
       </Menu>
     </React.Fragment>
   )

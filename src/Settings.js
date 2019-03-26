@@ -127,6 +127,10 @@ class Settings extends Component{
     }
   }
 
+  componentWillUnmount(){
+    clearTimeout(this.state.temp.firstSectionIconClickCounterTimeout)
+  }
+
   handleInputChange(id, e){
     let val = inputInfo[id].type === "boolean" ? e.target.checked : e.target.value
 
@@ -176,26 +180,31 @@ class Settings extends Component{
 
   // unlocks dev options
   handleFirstSectionIconClick = () => {
-    // don't do anything if the user already has dev options unlocked
-    if(localStorage.devUnlocked) return
-
     let {firstSectionIconClickCounter} = this.state.temp
     if(!firstSectionIconClickCounter) firstSectionIconClickCounter = 0
     firstSectionIconClickCounter++
 
-    if(firstSectionIconClickCounter > 15){
-      if(window.confirm(
-        `Howdy there! Looks like you just clicked the settings icon 16 times
+    if(firstSectionIconClickCounter > 12){
+      // turn off dev options
+      if(localStorage.devUnlocked){
+        if(window.confirm("Are you sure you want to turn off dev options?")){
+          localStorage.removeItem("devUnlocked")
+        }
+      }
+      else{
+        if(window.confirm(
+          `Howdy there! Looks like you just clicked the settings icon 13 times
 in a row which means a) you just had a stroke or b) you're trying to unlock developer options.
 If it's the former, please seek help immediately. If the latter, click OK.`
-      )){
-        localStorage.devUnlocked = true
+        )){
+          localStorage.devUnlocked = true
 
-        clearTimeout(this.state.temp.firstSectionIconClickCounterTimeout)
-        let temp = this.state.temp
-        delete temp.firstSectionIconClickCounter
-        delete temp.firstSectionIconClickCounterTimeout
-        this.setState({temp})
+          clearTimeout(this.state.temp.firstSectionIconClickCounterTimeout)
+          let temp = this.state.temp
+          delete temp.firstSectionIconClickCounter
+          delete temp.firstSectionIconClickCounterTimeout
+          this.setState({temp})
+        }
       }
     }
 

@@ -7,7 +7,7 @@ import SettingsDefaultColors from "./MobileViews/SettingsDefaultColors"
 import LinkToRoot from './LinkToRoot'
 import Navbar from "./Navbar"
 import Footer from "./Footer"
-import { defaultSettings } from './util/_defaultSettings'
+import { defaultSettings } from './util/defaultValues'
 import { IsMobileContext } from './_Context'
 
 export default class AppRouter extends Component {
@@ -102,6 +102,7 @@ export default class AppRouter extends Component {
                   loggedIn={this.props.loggedIn}
                   currentTime={this.state.currentTime}
                   onCurrentTimeChange={currentTime => {this.setState({currentTime})}}
+                  update={localStorage.devUnlocked ? this.props.update : {}}
                 />
               ) : (
                 <Switch>

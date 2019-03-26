@@ -16,3 +16,18 @@ export const defaultSettings = {
   changeModeOnTab: false,
   detectBreaksAutomatically: true
 }
+
+export const defaultDataValues = {
+  projects: [],
+  breaks: [],
+  defaultProjects: [],
+  settings: defaultSettings,
+  startTime: {h: 2, m: "00", pm: true},
+  endTime: {h: 9, m: "00", pm: true},
+  mode: "planning",
+  defaultColorIndex: 0,
+  defaultColorIndexDefaultProjects: 0,
+  productivityPercentage: undefined,
+  useDefaultProjects: true,
+  lastReset: undefined
+}

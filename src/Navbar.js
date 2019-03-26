@@ -77,6 +77,8 @@ export default class Navbar extends Component{
           setNavbarState={this.setState.bind(this)}
           close={this.close}
           planningCollapseOpenExplicit={this.state.planningCollapseOpenExplicit}
+          data={localStorage.devUnlocked ? this.props.data : {}}
+          update={this.props.update}
         />
       </SwipeableDrawer>
     </React.Fragment>
