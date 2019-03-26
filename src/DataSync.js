@@ -36,8 +36,7 @@ export default class DataSync extends Component{
       temp: {}
     }
 
-    //this.io = SocketIOClient.connect('https://mind-your-time-server.herokuapp.com')
-    this.io = SocketIOClient.connect('localhost:3000')
+    this.io = SocketIOClient.connect('https://mind-your-time-server.herokuapp.com')
 
     setTimeout(() => {
       // check if the user is offline
