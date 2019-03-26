@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import DevOptions from './DevOptions'
 import GoogleSignIn from './signIn/GoogleSignIn';
 import IconButton from '@material-ui/core/IconButton';
 import List from '@material-ui/core/List';
@@ -191,6 +192,15 @@ class DrawerMenu extends Component{
               <ListItemText primary="Sign In" />
             </ListItem>
           )} />
+        )
+      }
+      {
+        localStorage.devUnlocked && (
+          <DevOptions
+            data={this.props.data}
+            update={this.props.update}
+            showAsListItem
+          />
         )
       }
     </List>

@@ -115,7 +115,8 @@ class Settings extends Component{
     super(props)
     this.state = {
       inputs: this.props.settings,
-      showErrors: {}
+      showErrors: {},
+      temp: {}
     }
   }
 
@@ -171,6 +172,43 @@ class Settings extends Component{
       this.setState({inputs: this.props.defaultSettings})
       this.props.update({settings: this.props.defaultSettings})
     }
+  }
+
+  // unlocks dev options
+  handleFirstSectionIconClick = () => {
+    // don't do anything if the user already has dev options unlocked
+    if(localStorage.devUnlocked) return
+
+    let {firstSectionIconClickCounter} = this.state.temp
+    if(!firstSectionIconClickCounter) firstSectionIconClickCounter = 0
+    firstSectionIconClickCounter++
+
+    if(firstSectionIconClickCounter > 15){
+      if(window.confirm(
+        `Howdy there! Looks like you just clicked the settings icon 16 times
+in a row which means a) you just had a stroke or b) you're trying to unlock developer options.
+If it's the former, please seek help immediately. If the latter, click OK.`
+      )){
+        localStorage.devUnlocked = true
+
+        clearTimeout(this.state.temp.firstSectionIconClickCounterTimeout)
+        let temp = this.state.temp
+        delete temp.firstSectionIconClickCounter
+        delete temp.firstSectionIconClickCounterTimeout
+        this.setState({temp})
+      }
+    }
+
+    clearTimeout(this.state.temp.firstSectionIconClickCounterTimeout)
+    let firstSectionIconClickCounterTimeout = setTimeout(() => {
+      this.setState({temp: {...this.state.temp, firstSectionIconClickCounter: 0}})
+    }, 3000)
+
+    this.setState({temp: {
+      ...this.state.temp,
+      firstSectionIconClickCounter,
+      firstSectionIconClickCounterTimeout
+    }})
   }
 
   render(){
@@ -296,7 +334,9 @@ class Settings extends Component{
         <React.Fragment key={i}>
           <TableRow>
             <TableCell className="sectionIconCell">
-              <Icon>{sectionInfo[inputInfo[el].section].icon}</Icon>
+              <Icon onClick={i ? () => {} : this.handleFirstSectionIconClick}>
+                {sectionInfo[inputInfo[el].section].icon}
+              </Icon>
             </TableCell>
             <TableCell colSpan={3}>
               <Typography variant="h5" style={{paddingTop: "2.5rem"}}>

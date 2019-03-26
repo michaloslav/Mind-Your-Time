@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import GoogleSignIn from './signIn/GoogleSignIn';
+import DevOptions from './DevOptions'
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import IconButton from '@material-ui/core/IconButton';
@@ -70,6 +71,15 @@ export default class DropdownMenu extends Component{
                   Sign In
                 </MenuItem>
               )} />
+            )
+          }
+          {
+            localStorage.devUnlocked && (
+              <DevOptions
+                data={this.props.data}
+                update={this.props.update}
+                close={this.close}
+              />
             )
           }
         </Menu>

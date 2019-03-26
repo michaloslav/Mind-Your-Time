@@ -973,6 +973,8 @@ export default class App extends Component {
                   disconnect={this.props.disconnect}
                   history={this.props.history}
                   loggedIn={this.props.loggedIn}
+                  data={localStorage.devUnlocked ? this.props.data : {}}
+                  update={localStorage.devUnlocked ? this.props.update : {}}
                 />
               </React.Fragment>
             )}
