@@ -981,7 +981,6 @@ export default class App extends Component {
             <Slide
               direction="right"
               in={
-                false &&
                 !this.props.loggedIn &&
                 !this.state.temp.dontShowSignInYet &&
                 !this.state.temp.signInDissmissed &&
