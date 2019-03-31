@@ -9,7 +9,7 @@ import * as SocketIOClient from 'socket.io-client'
 import Cookies from 'universal-cookie';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import green from '@material-ui/core/colors/green';
-import { defaultSettings, defaultDataValues } from './util/defaultValues'
+import { defaultDataValues } from './util/defaultValues'
 import makeNewId from './util/makeNewId'
 
 const cookies = new Cookies()
@@ -49,7 +49,7 @@ export default class DataSync extends Component{
         if(this.state.accessToken) temp.showDisconnectedError = true
         this.setState({temp})
       }
-    }, 100)
+    }, 250)
 
     this.io.on("connect", data => {
       // if the user was previously disconnected and they're logged in, connect them

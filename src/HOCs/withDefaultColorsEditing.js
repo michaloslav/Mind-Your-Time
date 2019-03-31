@@ -4,7 +4,11 @@ const withDefaultColorsEditing = WrappedComponent => (
   class withDefaultColorsEditing extends Component{
     constructor(props){
       super(props)
-      this.state = {}
+      let state = {}
+      if(this.props.settings && this.props.settings.defaultColors){
+        state.defaultColors = this.props.settings.defaultColors
+      }
+      this.state = state
     }
 
     componentDidUpdate(){
