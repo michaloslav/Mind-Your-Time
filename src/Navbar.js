@@ -9,17 +9,14 @@ import MenuIcon from '@material-ui/icons/Menu';
 import TimeStats from './TimeStats'
 import './css/Navbar.css'
 
+// the mobile navbar
 export default class Navbar extends Component{
   constructor(props){
     super(props)
     this.state = {
-      drawerOpen: false,
+      drawerOpen: false, // this opens/closes the swipeable "menu" on the left
       planningCollapseOpenExplicit: false
     }
-  }
-
-  componentDidUpdate(){
-    setTimeout(this.checkActive, 500)
   }
 
   open = () => {
@@ -57,6 +54,7 @@ export default class Navbar extends Component{
               breaks={this.props.data.breaks}
               settings={this.props.data.settings}
               startTime={this.props.data.startTime}
+              realEndTime={this.props.data.realEndTime}
               shortLabels
             />
           </Grid>

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './css/ColorPicker.css'
 
+// the colored circle that both displays and edits the color of the project
 export default class ColorPicker extends Component {
   constructor(props){
     super(props)

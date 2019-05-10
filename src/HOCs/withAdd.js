@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { projectValidation, breakValidation } from '../util/validation'
 import withInputFields from './withInputFields'
 
+// adds functionality for adding projects, defaultProjects and breaks (both desktop and mobile)
 const withAdd = WrappedComponent => (
   withInputFields(
     class withAdd extends Component{
@@ -13,6 +14,7 @@ const withAdd = WrappedComponent => (
         if(type === "break") validation = breakValidation(inputValues)
         else validation = projectValidation(inputValues, type === "default")
 
+        // if validation fails, show an error
         if(!validation.valid){
           let newState = this.props.showErrors
           validation.errors.forEach(error => {
@@ -22,7 +24,7 @@ const withAdd = WrappedComponent => (
           return
         }
 
-        // reset the state
+        // reset the state (depending on the type)
         let newInputValues = {name: ""}
         let newDefaultColorIndex
         if(type !== "default") newInputValues.startTime = {h: "", m: "", pm: true}
@@ -51,6 +53,7 @@ const withAdd = WrappedComponent => (
         if(type !== "break") newState.defaultColorIndex = newDefaultColorIndex
         this.props.setState(newState)
 
+        // if there's a callback provided to the method, call it
         if(typeof callback === "function") callback()
       }
 

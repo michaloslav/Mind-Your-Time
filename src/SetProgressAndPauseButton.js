@@ -4,6 +4,8 @@ import Popover from '@material-ui/core/Popover';
 import IconButton from '@material-ui/core/IconButton';
 import PauseIcon from '@material-ui/icons/Pause';
 
+// the button responsible for pausing the project and the Popover associated with it
+// (the Popover lets you set progress)
 export default class SetProgressAndPauseButton extends Component{
   constructor(props){
     super(props)

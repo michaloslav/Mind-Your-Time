@@ -4,6 +4,7 @@ import TimeSetterMobile from './TimeSetterMobile'
 import { SettingsContext, IsMobileContext } from './_Context'
 import './css/TimeSetter.css'
 
+// just a wrapper-ish that decides whether we should display the mobile or the desktop version 
 const TimeSetter = props => (
   <SettingsContext.Consumer>
     {settings => (

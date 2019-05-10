@@ -3,6 +3,7 @@ import Fab from '@material-ui/core/Fab'
 import Grid from '@material-ui/core/Grid'
 import './css/ModeSwitch.css'
 
+// UI for switching between planning and working
 export default function ModeSwitch(props) {
   let buttonsArray = [{label: "Plan", val: "planning"}, {label: "Work", val: "working"}]
   let buttons = buttonsArray.map(el => (

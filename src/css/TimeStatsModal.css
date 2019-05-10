@@ -11,7 +11,6 @@
 }
 
 .TimeStatsModal .helperIcon{
-  transform: scale(.8);
   float: right;
   padding: .25rem;
 }

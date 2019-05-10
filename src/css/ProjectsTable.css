@@ -26,5 +26,5 @@
   position: relative;
   width: 10rem;
   bottom: .8rem;
-  color: #000000a3;
+  color: var(--label);
 }

@@ -8,9 +8,12 @@ import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
 import { defaultDataValues } from './util/defaultValues'
 
-export default class  extends Component{
+// a part of DevOptions, lets the user easily reset local data (especially on mobile devices)
+export default class DevOptionsResetDialog extends Component{
   constructor(props){
     super(props)
+
+    // the state here is an object with keys representing the data items and boolean values
     let state = {}
     for(let el of this.props.dataItems) state[el] = true
     this.state = state
@@ -18,13 +21,14 @@ export default class  extends Component{
 
   handleChange = id => e => this.setState({[id]: e.target.checked})
 
+  // when the user confirms the reset
   reset = () => {
     let updateData = {}
     for(let el of Object.keys(this.state)) if(this.state[el]){
       updateData[el] = defaultDataValues[el]
     }
     this.props.update(updateData)
-    window.location.reload()
+    window.location.reload() // reload so that everything can be re-processed properly
   }
 
   render = () => (

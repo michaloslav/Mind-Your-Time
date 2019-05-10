@@ -25,11 +25,12 @@ export default class TimeStats extends Component {
     clearInterval(this.currentTimeUpdateInterval)
   }
 
+  // runs every second, checks if the time hasn't changed since the last time it ran (ignoring seconds, ms, etc. of course)
   updateCurrentTime = () => {
     let currentTime = new Date()
     let m = currentTime.getMinutes()
 
-    this.setState({currentTimeAvailable: true})
+    if(!this.state.currentTimeAvailable) this.setState({currentTimeAvailable: true})
 
     // if it's still the same minute, there's no need to update the clock
     // (and if this isn't the initial time setting)
@@ -52,17 +53,23 @@ export default class TimeStats extends Component {
   render(){
     // calculate the stats
     // (if currentTime and settings are available)
-    let totalProjectTime, totalBufferTime, totalBreakTime, timeNeeded, timeRemaining, timeNeededWarning, timeRemainingNegative, timeRemainingWarning
+    let totalProjectTime, totalBufferTime, totalBreakTime, timeNeeded,
+      timeRemaining, timeNeededWarning, timeRemainingNegative, timeRemainingWarning
 
     if(this.state.currentTimeAvailable && this.props.settings.bufferTimePercentage){
       totalProjectTime = totalBufferTime = 0
       this.props.projects.forEach((project, i) => {
         if(project.state !== "done"){
+          // determine how much time there is left and how much progress there has been
           let durationLeft = parseInt(project.estimatedDuration)
 
           let progress = parseInt(project.progress)
           if(project.state === "workingOnIt" && project.startedWorkingOnIt){
-            progress += TimeCalc.subtractToMinutes(this.props.currentTime, project.startedWorkingOnIt, true)
+            progress += TimeCalc.subtractToMinutes(
+              {...this.props.currentTime, s: new Date().getSeconds()},
+              project.startedWorkingOnIt,
+              true
+            )
           }
 
           if(progress){
@@ -82,6 +89,7 @@ export default class TimeStats extends Component {
       totalProjectTime = Math.round(totalProjectTime / this.props.settings.roundTo) * this.props.settings.roundTo
       totalBufferTime = Math.round(totalBufferTime / this.props.settings.roundTo) * this.props.settings.roundTo
 
+      // calculate similar stats for breaks
       totalBreakTime = 0
       for(let el of this.props.breaks){
         let endTime = TimeCalc.toMinutesSinceMidnight(el.endTime, true)
@@ -92,16 +100,17 @@ export default class TimeStats extends Component {
 
         let startTime = TimeCalc.toMinutesSinceMidnight(el.startTime, true)
 
-        // if the break hasn't started yet
+        // if the break hasn't started yet, count in its entire length
         if(TimeCalc.isBiggerThan(startTime, currentTime, true)){
           totalBreakTime += TimeCalc.subtractToMinutes(endTime, startTime, true)
         }
-        // if the break has started and is currently going on
+        // if the break has started and is currently going on, only add the portion of it that hasn't happened yet
         else totalBreakTime += TimeCalc.subtractToMinutes(endTime, currentTime, true)
       }
       // round totalBreakTime according to settings
       totalBreakTime = Math.round(totalBreakTime / this.props.settings.roundTo) * this.props.settings.roundTo
 
+      // finally, calculate the 2 numbers to be shown at the top of the screen
       timeNeeded = TimeCalc.toTimeObject(TimeCalc.addToMinutes(totalProjectTime, totalBufferTime, totalBreakTime), false)
       timeRemaining = TimeCalc.subtract(this.props.endTime, this.props.currentTime, true)
 
@@ -116,6 +125,10 @@ export default class TimeStats extends Component {
       timeNeeded = timeRemaining = {h: 0, m: 0, pm: false}
       timeNeededWarning = timeRemainingNegative = timeRemainingWarning = false
     }
+
+
+    //console.warn("Conditional debugger");
+    //if(this.props.projects.length.length && !Number(timeNeeded.m) && !Number(timeNeeded.h)) debugger
 
     return (
       <React.Fragment>

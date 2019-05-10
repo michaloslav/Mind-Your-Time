@@ -8,8 +8,12 @@ import StartIcon from '@material-ui/icons/PlayArrow';
 import UndoIcon from '@material-ui/icons/Undo';
 import './css/ChangeProjectStateCell.css'
 
+// a simple display only component that lets the user edit a project's state
 export default function ChangeProjectStateCell(props){
+  // there are always 1-2 buttons, which ones depends on isMobile and the current state of the project
+  // the mobile UI can only fit 1 button, desktop can fit 2
   let content = []
+  // if the project is done, show an undo button (to let the user go back to "paused") and on desktop, show a "done" span
   if(props.row.state === "done"){
     if(!props.isMobile) content.push(<span key="doneSpan" className="done">DONE</span>)
     content.push(
@@ -23,6 +27,7 @@ export default function ChangeProjectStateCell(props){
     )
   }
   else{
+    // if the state is "workingOnIt", show a pause button and a done button on desktop and a dropdown with these option on mobile
     if(props.row.state === "workingOnIt"){
       if(props.isMobile){
         content.push(
@@ -31,6 +36,7 @@ export default function ChangeProjectStateCell(props){
             row={props.row}
             currentTime={props.currentTime}
             onProjectStateChange={props.onProjectStateChange}
+            progressCapped={props.progressCapped}
           />
         )
       }

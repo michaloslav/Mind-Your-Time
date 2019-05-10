@@ -16,99 +16,8 @@ import { Link } from "react-router-dom";
 import { IsMobileContext } from './_Context'
 import withDefaultColorsEditing from './HOCs/withDefaultColorsEditing'
 import './css/Settings.css'
+import {sectionInfo, inputInfo} from './util/settingsConfig'
 
-const sectionInfo = {
-  general: {
-    order: 0,
-    label: "General settings",
-    icon: "settings"
-  },
-  detection: {
-    order: 1,
-    label: "Automatic detection",
-    icon: "search"
-  },
-  misc: {
-    order: 2,
-    label: "Miscellaneous",
-    icon: "menu"
-  },
-}
-
-const inputInfo = {
-  timeFormat24H: {
-    label: "Use the 24-hour time format",
-    type: "boolean",
-    section: "general",
-    order: 0,
-    icon: "timer"
-  },
-  bufferTimePercentage: {
-    label: "Bufffer time percentage",
-    type: "percentage",
-    max: 1,
-    tooltip: "Buffer times are short breaks inserted after each project. Their length depends on the length of the project before them. This field determines what percentage of the previous project's duration the buffer will be.",
-    section: "general",
-    order: 1,
-    icon: "view_week"
-  },
-  showResetButtonAfter: {
-    label: "Show reset button after (hours)",
-    type: "int",
-    section: "misc",
-    order: 3,
-    icon: "restore"
-  },
-  defaultColors: {
-    label: "Default colors:",
-    type: "colors",
-    section: "misc",
-    order: 0,
-    icon: "invert_colors"
-  },
-  updateTimesAfterDrag: {
-    label: "Adjust planned times after changing the order of projects",
-    type: "boolean",
-    section: "detection",
-    order: 0,
-    icon: "swap_vert"
-  },
-  updateTimesAfterEdit: {
-    label: "Adjust planned times after editing a project",
-    type: "boolean",
-    section: "detection",
-    order: 1,
-    icon: "edit"
-  },
-  updateTimesAfterDelete: {
-    label: "Adjust planned times after deleting a project",
-    type: "boolean",
-    section: "detection",
-    order: 2,
-    icon: "delete"
-  },
-  roundTo: {
-    label: "Round to (minutes)",
-    type: "int",
-    section: "misc",
-    order: 2,
-    icon: "access_time"
-  },
-  changeModeOnTab: {
-    label: "Change mode when the Tab key is pressed",
-    type: "boolean",
-    section: "misc",
-    order: 1,
-    icon: "redo"
-  },
-  detectBreaksAutomatically: {
-    label: "Detect breaks automatically",
-    type: "boolean",
-    section: "detection",
-    order: 3,
-    icon: "pause"
-  }
-}
 
 class Settings extends Component{
   constructor(props){
@@ -122,16 +31,19 @@ class Settings extends Component{
 
   componentDidUpdate(){
     // only update if it's the init with data from localStorage
+    //(which won't be loaded immediately if the user loads /settings directly)
     if(!Object.keys(this.state.inputs).length && this.props.settings){
       this.setState({inputs: this.props.settings})
     }
   }
 
   componentWillUnmount(){
+    // prevent memory leaks
     clearTimeout(this.state.temp.firstSectionIconClickCounterTimeout)
   }
 
   handleInputChange(id, e){
+    // handle checkboxes too
     let val = inputInfo[id].type === "boolean" ? e.target.checked : e.target.value
 
     // validation
@@ -148,12 +60,14 @@ class Settings extends Component{
     }
     if(typeof inputInfo[id].max !== "undefined" && val > inputInfo[id].max) return
 
+    // save to state, hide errors
     let newState = {inputs: this.state.inputs, showErrors: this.state.showErrors}
     newState.inputs[id] = val
     newState.showErrors[id] = false
     this.setState({newState})
   }
 
+  // save and go back
   save = () => {
     // validation (for empty percentage)
     let inputs = this.state.inputs
@@ -178,19 +92,23 @@ class Settings extends Component{
     }
   }
 
-  // unlocks dev options
+  // unlocks dev options (which are unlocked by clicking the icon of the first section several times)
   handleFirstSectionIconClick = () => {
+    // count the amount of clicks
     let {firstSectionIconClickCounter} = this.state.temp
     if(!firstSectionIconClickCounter) firstSectionIconClickCounter = 0
     firstSectionIconClickCounter++
 
+    // if there have been enough clicks...
     if(firstSectionIconClickCounter > 12){
-      // turn off dev options
+      // turn off dev options if they were previously enabled
       if(localStorage.devUnlocked){
         if(window.confirm("Are you sure you want to turn off dev options?")){
           localStorage.removeItem("devUnlocked")
         }
       }
+
+      // if dev options were previously disabled, enable them
       else{
         if(window.confirm(
           `Howdy there! Looks like you just clicked the settings icon 13 times
@@ -199,15 +117,18 @@ If it's the former, please seek help immediately. If the latter, click OK.`
         )){
           localStorage.devUnlocked = true
 
+          // clear the timeout to prevent memory leaks, delete the temp values as they are no longer needed
           clearTimeout(this.state.temp.firstSectionIconClickCounterTimeout)
           let temp = this.state.temp
           delete temp.firstSectionIconClickCounter
           delete temp.firstSectionIconClickCounterTimeout
+
           this.setState({temp})
         }
       }
     }
 
+    // rest the click counter 3 seconds after the last click (always have only 1 timout runing)
     clearTimeout(this.state.temp.firstSectionIconClickCounterTimeout)
     let firstSectionIconClickCounterTimeout = setTimeout(() => {
       this.setState({temp: {...this.state.temp, firstSectionIconClickCounter: 0}})
@@ -221,148 +142,135 @@ If it's the former, please seek help immediately. If the latter, click OK.`
   }
 
   render(){
-    let inputKeysSorted = Object.keys(this.state.inputs).sort((a, b) => {
-      let sectionA = inputInfo[a].section
-      let sectionB = inputInfo[b].section
-      let sectionAOrder = sectionInfo[sectionA].order
-      let sectionBOrder = sectionInfo[sectionB].order
-
-      // if each is in a different section, sort by that
-      if(sectionAOrder !== sectionBOrder) return sectionAOrder > sectionBOrder ? 1 : -1
-      // if they're both in the same section, sort by their own order
-      else return inputInfo[a].order > inputInfo[b].order ? 1 : -1
-    })
-
-    let inputs = inputKeysSorted.map((el, i) => {
-      let tableRow
-
-      if(el === "defaultColors") tableRow = (
-        <TableRow key={i}>
-          <TableCell className="iconCell">
-            <Icon>{inputInfo[el].icon}</Icon>
-          </TableCell>
-          <TableCell>
-            Default colors:
-          </TableCell>
-          <IsMobileContext.Consumer>
-            {isMobile => (
-              isMobile ? (
-                <TableCell className="value">
-                  <Link to="/settings/defaultColors" aria-label="Set default colors">
-                    <Button variant="outlined">
-                      Set
-                    </Button>
-                  </Link>
-                </TableCell>
-              ) : (
-                <TableCell id="defaultColorsCell" className="value">
-                  {
-                    this.state.inputs.defaultColors.map((color, i) => (
-                      <div key={i}>
-                        <ColorPicker
-                          value={color}
-                          onChange={this.props.onDefaultColorChange.bind(this, i)}
-                        />
-                        <div className="removeDefaultColorDiv">
-                          <IconButton
-                            aria-label="Remove the color"
-                            className="removeDefaultColor"
-                            disableRipple={true}
-                            onClick={this.props.removeDefaultColor.bind(this, i)}>
-                            <Icon>remove</Icon>
-                          </IconButton>
-                        </div>
-                      </div>
-                    ))
-                  }
-                  <IconButton
-                    id="addDefaultColor"
-                    aria-label="Add a new default color"
-                    onClick={this.props.addDefaultColor}>
-                    <Icon>add</Icon>
-                  </IconButton>
-                </TableCell>
-              )
-            )}
-          </IsMobileContext.Consumer>
-          <TableCell className="rightCell" />
-        </TableRow>
-      )
-      else{
-        // handle undefined inputInfo
-        if(!inputInfo[el]){
-          console.warn(el + "is not a property of inputInfo");
-          return <div />
-        }
-        tableRow =  (
-          <TableRow key={i}>
-            <TableCell className="iconCell">
-              <Icon>{inputInfo[el].icon}</Icon>
-            </TableCell>
-            <TableCell>
-              {inputInfo[el].label}
-              {inputInfo[el].tooltip && (
-                <Tooltip title={inputInfo[el].tooltip} disableFocusListener disableTouchListener>
-                  <Icon className="tooltipIcon">help</Icon>
-                </Tooltip>
-              )}
-              :
-            </TableCell>
-            <TableCell className="value">
-              {
-                inputInfo[el].type === "boolean" ? (
-                  <Switch
-                    color="primary"
-                    checked={this.state.inputs[el]}
-                    onChange={this.handleInputChange.bind(this, el)}
-                    aria-label={inputInfo[el].label}
-                  />
-                ) : (
-                  <Input
-                    value={
-                      (inputInfo[el].type === "percentage" && this.state.inputs[el] !== "%") ? (
-                        this.state.inputs[el] * 100 + "%"
-                      ) : (this.state.inputs[el])
-                    }
-                    onChange={this.handleInputChange.bind(this, el)}
-                    error={this.state.showErrors[el]}
-                    aria-label={inputInfo[el].label}
-                  />
-                )
-              }
-            </TableCell>
-            <TableCell className="rightCell" />
-          </TableRow>
-        )
-      }
-
-      // if this and the previous element are in the same section, return
-      if(i && inputInfo[el].section === inputInfo[inputKeysSorted[i-1]].section) return tableRow
-      // if they're each in a different section
-      else return (
-        <React.Fragment key={i}>
-          <TableRow>
-            <TableCell className="sectionIconCell">
-              <Icon onClick={i ? () => {} : this.handleFirstSectionIconClick}>
-                {sectionInfo[inputInfo[el].section].icon}
-              </Icon>
-            </TableCell>
-            <TableCell colSpan={3}>
-              <Typography variant="h5" style={{paddingTop: "2.5rem"}}>
-                {sectionInfo[inputInfo[el].section].label}:
-              </Typography>
-            </TableCell>
-          </TableRow>
-          {tableRow}
-        </React.Fragment>
-      )
-    })
+    // convert the state into a 2D UI array to make rendering easier
+    // the 1st dimension represents sections, the 2nd one individual elements
+    // eg. [["timeFormat", "autosave"], ["theme"]]
+    let inputKeys = []
+    let sectionKeys = Object.keys(sectionInfo)
+    sectionKeys.sort((a, b) => sectionInfo[a].order > sectionInfo[b].order ? 1 : -1)
+    for(let sectionName of sectionKeys){
+      let inputsInSection = Object.keys(this.state.inputs).filter(el => inputInfo[el].section === sectionName)
+      inputsInSection.sort((a, b) => inputInfo[a].order > inputInfo[b].order ? 1 : -1)
+      inputKeys.push(inputsInSection)
+    }
 
     return (
       <div className="Settings container">
         <Table>
           <TableBody>
-            {inputs.map(input => input)}
+            {inputKeys.map((inputKeyArray, i) => {
+              let sectionName = Object.keys(sectionInfo).find(name => sectionInfo[name].order === i)
+
+              return (
+                <React.Fragment key={i}>
+                  <TableRow>
+                    <TableCell className="sectionIconCell">
+                      <Icon onClick={i ? () => {} : this.handleFirstSectionIconClick}>
+                        {sectionInfo[sectionName].icon}
+                      </Icon>
+                    </TableCell>
+                    <TableCell colSpan={3}>
+                      <Typography variant="h5" style={{paddingTop: "2.5rem"}}>
+                        {sectionInfo[sectionName].label}:
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                  {inputKeyArray.map((inputKey, i) => (
+                    inputKey === "defaultColors" ? (
+                      <TableRow key={i}>
+                        <TableCell className="iconCell">
+                          <Icon>{inputInfo[inputKey].icon}</Icon>
+                        </TableCell>
+                        <TableCell>
+                          Default colors:
+                        </TableCell>
+                        <IsMobileContext.Consumer>
+                          {isMobile => (
+                            isMobile ? (
+                              <TableCell className="value">
+                                <Link to="/settings/defaultColors" aria-label="Set default colors">
+                                  <Button variant="outlined">
+                                    Set
+                                  </Button>
+                                </Link>
+                              </TableCell>
+                            ) : (
+                              <TableCell id="defaultColorsCell" className="value">
+                                {
+                                  this.state.inputs.defaultColors.map((color, i) => (
+                                    <div key={i}>
+                                      <ColorPicker
+                                        value={color}
+                                        onChange={this.props.onDefaultColorChange.bind(this, i)}
+                                      />
+                                      <div className="removeDefaultColorDiv">
+                                        <IconButton
+                                          aria-label="Remove the color"
+                                          className="removeDefaultColor"
+                                          disableRipple={true}
+                                          onClick={this.props.removeDefaultColor.bind(this, i)}>
+                                          <Icon>remove</Icon>
+                                        </IconButton>
+                                      </div>
+                                    </div>
+                                  ))
+                                }
+                                <IconButton
+                                  id="addDefaultColor"
+                                  aria-label="Add a new default color"
+                                  onClick={this.props.addDefaultColor}>
+                                  <Icon>add</Icon>
+                                </IconButton>
+                              </TableCell>
+                            )
+                          )}
+                        </IsMobileContext.Consumer>
+                        <TableCell className="rightCell" />
+                      </TableRow>
+                    ) : (
+                      <TableRow key={i}>
+                        <TableCell className="iconCell">
+                          <Icon>{inputInfo[inputKey].icon}</Icon>
+                        </TableCell>
+                        <TableCell>
+                          {inputInfo[inputKey].label}
+                          {inputInfo[inputKey].tooltip && (
+                            <Tooltip title={inputInfo[inputKey].tooltip} disableFocusListener disableTouchListener>
+                              <Icon className="tooltipIcon">help</Icon>
+                            </Tooltip>
+                          )}
+                          :
+                        </TableCell>
+                        <TableCell className="value">
+                          {
+                            inputInfo[inputKey].type === "boolean" ? (
+                              <Switch
+                                color="primary"
+                                checked={this.state.inputs[inputKey]}
+                                onChange={this.handleInputChange.bind(this, inputKey)}
+                                aria-label={inputInfo[inputKey].label}
+                              />
+                            ) : (
+                              <Input
+                                value={
+                                  (inputInfo[inputKey].type === "percentage" && this.state.inputs[inputKey] !== "%") ? (
+                                    this.state.inputs[inputKey] * 100 + "%"
+                                  ) : (this.state.inputs[inputKey])
+                                }
+                                onChange={this.handleInputChange.bind(this, inputKey)}
+                                error={this.state.showErrors[inputKey]}
+                                aria-label={inputInfo[inputKey].label}
+                              />
+                            )
+                          }
+                        </TableCell>
+                        <TableCell className="rightCell" />
+                      </TableRow>
+                    )
+                  ))}
+                </React.Fragment>
+              )
+            })}
             <TableRow>
               <TableCell colSpan={4}>
                 <Grid

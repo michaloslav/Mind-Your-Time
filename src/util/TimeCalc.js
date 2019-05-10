@@ -23,6 +23,8 @@ export default class TimeCalc {
         result = parsedH * 60 + parseInt(time.m)
         if(time.pm) result += 12 * 60
 
+        if(time.s) result += time.s / 60
+
         break;
       // if the typeof is none of the above, throw a warning
       default:
@@ -38,11 +40,13 @@ export default class TimeCalc {
     return result
   }
 
+  // TimeObject is an object with properties h, m, and pm
   static toTimeObject(minutes, setPm = true){
+    if(!Number.isInteger(minutes)) minutes = Math.round(minutes) // handle floats
+
+    // check for am/pm
     let pm = false
     if(setPm){
-
-      // check for am/pm
       while(minutes >= 24 * 60){
         minutes -= 24*60
       }
@@ -56,7 +60,7 @@ export default class TimeCalc {
     let m = minutes % 60
     let h = (minutes - m) / 60
 
-    if(isNaN(h) || isNaN(m)) console.warn("NaN result: ", {h, m, pm});
+    if(isNaN(h) || isNaN(m)) console.warn("NaN result: ", {h, m, pm}) // check for NaN
 
     if(setPm) return {h, m, pm}
     else return {h, m}
@@ -68,13 +72,15 @@ export default class TimeCalc {
     // make both an array input and a spread input acceptable
     let times = Array.isArray(arguments[0]) ? arguments[0] : arguments
 
-    // convert to minutes
+    // convert to minutes and add them up
     let resultInMinutes = 0
     for(let i = 0; i < times.length; i++){
       resultInMinutes += this.toMinutesSinceMidnight(times[i])
     }
 
-    return resultInMinutes
+    // accept floats but only return ints
+    if(Number.isInteger(resultInMinutes)) return resultInMinutes
+    else return Math.round(resultInMinutes)
   }
 
   static add(){
@@ -88,7 +94,9 @@ export default class TimeCalc {
     let mins2 = this.toMinutesSinceMidnight(time2, keepPositiveIfCrossingMidnight)
     let resultInMinutes = mins1 - mins2
 
-    return resultInMinutes
+    // accept floats but return ints
+    if(Number.isInteger(resultInMinutes)) return resultInMinutes
+    else return Math.round(resultInMinutes)
   }
 
   static subtract(time1, time2, keepPositiveIfCrossingMidnight = false){
@@ -97,20 +105,25 @@ export default class TimeCalc {
     return this.toTimeObject(resultInMinutes, false)
   }
 
+  // creates a string representation of time (in minutes or as a TimeObject)
   static makeString(time, showPmOrAm = true, convert0To12EvenIfNotShowingPmOrAm = false, timeFormat24H = false){
+
     // handle a number input
     if(typeof time === "number") time = this.toTimeObject(time, showPmOrAm)
 
     let h, m
 
-    if(timeFormat24H)showPmOrAm = false
+    if(timeFormat24H) showPmOrAm = false
 
     if(typeof time.m === "string") time.m = parseInt(time.m) // handle string input
-    m = time.m >= 10 ? time.m : "0" + time.m
+    if(time.s && time.s > 29) time.m = parseInt(time.m) + 1 // hande time.s
+    m = time.m >= 10 ? time.m : "0" + time.m // show eg. 6:05, not 6:5
 
-    h = ((showPmOrAm || convert0To12EvenIfNotShowingPmOrAm) && time.h === 0) ? 12 : time.h
+    // show eg. 12:30, not 0:30 (not applicable for durations)
+    h = ((showPmOrAm || convert0To12EvenIfNotShowingPmOrAm) && time.h === 0) ? 12 : parseInt(time.h)
 
-    if(timeFormat24H && time.pm) h = parseInt(h) + 12
+    // if the user wants a 24-hour time format, use it
+    if(timeFormat24H && time.pm) h += 12
 
     // handle NaN
     if(isNaN(m)){
@@ -118,6 +131,7 @@ export default class TimeCalc {
       return
     }
 
+    // create and return the actual string
     let string = h + ":" + m
     if(typeof time.pm !== "undefined" && showPmOrAm){
       let pmOrAm = time.pm ? "PM" : "AM"
@@ -141,6 +155,7 @@ export default class TimeCalc {
     else return difference > 0
   }
 
+  // check if all the arguments are identical
   static areIdentical(){
     let temp
 
@@ -171,6 +186,7 @@ export default class TimeCalc {
     return true
   }
 
+  // suggest a start time based on the previous project and the bufferTimePercentage
   static suggestStartTime(previousEndTime, previousDuration, settings){
     let exactStartTime = this.add(previousEndTime, previousDuration * settings.bufferTimePercentage)
 
@@ -186,6 +202,7 @@ export default class TimeCalc {
     return this.toTimeObject(average)
   }
 
+  // turns eg. {h: 6, m: 30} into "6 hours and 30 minutes"
   static makeFullLengthDurationString(time){
     let h = parseInt(time.h)
     let m = parseInt(time.m)
@@ -196,7 +213,7 @@ export default class TimeCalc {
     if(h > 1) string += "s"
     if(h && m) string += " and "
     if(m) string += m + " minute"
-    if(m > 2) string += "s"
+    if(m > 1) string += "s"
     if(!h && !m) string = "0 minutes"
 
     return string

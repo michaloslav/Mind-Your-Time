@@ -10,26 +10,28 @@ import Footer from "./Footer"
 import { defaultSettings } from './util/defaultValues'
 import { IsMobileContext } from './_Context'
 
-export default class AppRouter extends Component {
+export default class extends Component {
   constructor(props){
     super(props)
     this.state = {
-      width: window.innerWidth,
+      width: window.innerWidth, // used to determine if we should show the desktop or mobile UI
       currentTime: {
         h: 0,
         m: 0,
         pm: true,
-        defaultVal: true
+        defaultVal: true // this means this isn't a real value, just a placeholder
       },
       showErrors: {}
     }
   }
   componentWillMount(){
+    // when the user resizes the window, we need to check if we should still use the desktop/mobile UI or switch to the other one
     window.addEventListener("resize", () => {
       this.setState({width: window.innerWidth})
     })
   }
 
+  // these methods are necessary for letting these child components access props
   AppWithProps = props => (
     <App
       data={this.props.data}
@@ -66,8 +68,9 @@ export default class AppRouter extends Component {
     />
   )
 
+  // go from "planning" to "working" and back
   changeMode = val => {
-    // don't let the user go into work mode if there isn't an endTime or if projects are empty  (+ show an error)
+    // don't let the user go into work mode if there isn't an endTime or if projects are empty (+ show an error)
     if(val === "working"){
       if(this.props.data.endTime.h === "" || this.props.data.endTime.m === ""){
         this.changeShowErrors("endTime", true)
@@ -82,6 +85,7 @@ export default class AppRouter extends Component {
     this.props.update({mode: val})
   }
 
+  // an util function to DRY the code
   changeShowErrors = (id, val) => {
     this.setState({showErrors: {...this.state.showErrors, [id]: val}})
   }
@@ -91,44 +95,42 @@ export default class AppRouter extends Component {
 
     return (
       <Router>
-        <div style={{position: "relative"}}>
-          {
-            isMobile ? (
-                <Navbar
-                  data={this.props.data}
-                  connect={this.props.connect}
-                  changeMode={this.changeMode}
-                  disconnect={this.props.disconnect}
-                  loggedIn={this.props.loggedIn}
-                  currentTime={this.state.currentTime}
-                  onCurrentTimeChange={currentTime => {this.setState({currentTime})}}
-                  update={localStorage.devUnlocked ? this.props.update : {}}
-                />
-              ) : (
-                <Switch>
-                  <Route path="/(|add|edit|breaks|defaultProjects)" exact />
-                  <Route component={LinkToRoot} />
-                </Switch>
-            )
-          }
-          <IsMobileContext.Provider value={isMobile}>
-            <Switch>
-              <Route path="/settings/defaultColors/" render={this.SettingsDefaultColorsWithProps}/>
-              <Route path="/settings/" render={this.SettingsWithProps}/>
-              <Route path="/about/" component={About}/>
-              <Route path="/robots.txt" target="_self" />
-              <Route path="/(|add|edit|breaks|defaultProjects)" exact render={this.AppWithProps}/>
-              <Route render={() => <Redirect to="/" />} />
-            </Switch>
-          </IsMobileContext.Provider>
-          {
-            isMobile ? (
-              <Route path="/about/" component={Footer} />
+        {
+          isMobile ? (
+              <Navbar
+                data={this.props.data}
+                connect={this.props.connect}
+                changeMode={this.changeMode}
+                disconnect={this.props.disconnect}
+                loggedIn={this.props.loggedIn}
+                currentTime={this.state.currentTime}
+                onCurrentTimeChange={currentTime => {this.setState({currentTime})}}
+                update={localStorage.devUnlocked ? this.props.update : {}}
+              />
             ) : (
-              <Footer />
-            )
-          }
-        </div>
+              <Switch>
+                <Route path="/(|add|edit|breaks|defaultProjects)" exact />
+                <Route component={LinkToRoot} />
+              </Switch>
+          )
+        }
+        <IsMobileContext.Provider value={isMobile}>
+          <Switch>
+            <Route path="/settings/defaultColors/" render={this.SettingsDefaultColorsWithProps}/>
+            <Route path="/settings/" render={this.SettingsWithProps}/>
+            <Route path="/about/" component={About}/>
+            <Route path="/robots.txt" target="_self" />
+            <Route path="/(|add|edit|breaks|defaultProjects)" exact render={this.AppWithProps}/>
+            <Route render={() => <Redirect to="/" />} />
+          </Switch>
+        </IsMobileContext.Provider>
+        {
+          isMobile ? (
+            <Route path="/about/" component={Footer} />
+          ) : (
+            <Footer />
+          )
+        }
       </Router>
     )
   }

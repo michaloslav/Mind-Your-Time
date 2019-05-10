@@ -11,7 +11,7 @@
 
 .dragIcon{
   cursor: grab;
-  color: #000000bf;
+  color: var(--drag-icon);
 }
 
 .timeStatsLabelDiv, #addProjectLabelDiv{
@@ -21,7 +21,7 @@
 .timeStatsLabelDiv label, #addProjectLabelDiv label{
   position: relative;
   width: 10rem;
-  color: #000000a3;
+  color: var(--label);
   font-size: .8125rem;
   font-weight: 400;
 }
@@ -72,17 +72,4 @@
 .DefaultProjectsView .drawerTitle{
   width: 100%;
   text-align: center;
-}
-
-/* working */
-#congratsDiv{
-  margin-top: 2rem;
-  width: 100%;
-  text-align: center;
-  color: #00c853 !important;
-}
-
-#congrats{
-  font-size: 1.2rem;
-  font-weight: bold;
 }

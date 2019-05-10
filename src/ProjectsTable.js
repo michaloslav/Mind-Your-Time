@@ -51,6 +51,7 @@ const ProjectsTable = props => (
                           mode={props.mode}
                           row={row}
                           currentTime={props.currentTime}
+                          settings={props.settings}
                           provided={provided}
                           onColorChange={props.onColorChange}
                           onDoneEditing={props.onDoneEditing}
@@ -71,6 +72,7 @@ const ProjectsTable = props => (
                         showErrors={props.showErrors}
                         lastProject={props.projects[props.projects.length - 1]}
                         onAddProject={props.onAddProject}
+                        currentTime={props.currentTime}
                       />
                     )
                   }

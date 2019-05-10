@@ -1,18 +1,23 @@
 import React, { Component } from 'react'
 
+// adds functionality used in both the desktop version of settings and the mobile view responsible for editing default colors
 const withDefaultColorsEditing = WrappedComponent => (
   class withDefaultColorsEditing extends Component{
     constructor(props){
       super(props)
       let state = {}
+
+      // if the settings are loaded already, load them into the state
       if(this.props.settings && this.props.settings.defaultColors){
         state.defaultColors = this.props.settings.defaultColors
       }
+
       this.state = state
     }
 
     componentDidUpdate(){
       // only execute if it's the init with data from localStorage
+      // (if the user loads the page using this HOC directly instead of clicking on a router link leading here, the data won't be available immediately)
       if(
         typeof this.state.defaultColors === "undefined" &&
         this.props.settings

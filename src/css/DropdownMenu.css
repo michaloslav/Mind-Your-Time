@@ -1,5 +1,5 @@
 #linkToSettings, #dropdownMenuButton, #dropdownMenu svg{
-  color: #545454;
+  color: var(--nav-icon);
 }
 
 #linkToSettings, #dropdownMenuButton{

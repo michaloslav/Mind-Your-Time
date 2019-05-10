@@ -5,8 +5,11 @@ import ColorPicker from '../ColorPicker'
 import Grid from '@material-ui/core/Grid'
 import TextField from '@material-ui/core/TextField'
 import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button'
+import makeDaysString from '../util/makeDaysString'
 import '../css/MobileInputFields.css'
 
+// the display element used both for adding and editing projects, breaks, defaultProject etc.
 const MobileInputFields = props => (
   <Grid className="MobileInputFields container">
     <BackButton onClick={props.close} />
@@ -20,7 +23,7 @@ const MobileInputFields = props => (
       <TextField
         value={props.inputValues.name}
         onChange={props.onInputChange.bind(this, "name")}
-        onKeyPress={props.onKeyPress}
+        onKeyDown={props.onKeyDown}
         placeholder="Name"
         aria-label="Name"
         error={props.showErrors.name || props.showErrorProp}
@@ -41,7 +44,7 @@ const MobileInputFields = props => (
             type="number"
             value={props.inputValues.duration}
             onChange={props.onInputChange.bind(this, "duration")}
-            onKeyPress={props.onKeyPress}
+            onKeyDown={props.onKeyDown}
             placeholder="Duration"
             aria-label="Duration"
             error={props.showErrors.duration || props.showErrorProp}
@@ -84,6 +87,18 @@ const MobileInputFields = props => (
           value={props.inputValues.color}
           onChange={props.onColorChange}
         />
+      </Grid>
+    )}
+    {props.type === "default" && (
+      <Grid className="days" container alignItems='baseline' justify="space-between">
+        <Grid item xs={9}>
+          Days:<br/>{makeDaysString(props.inputValues.days)}
+        </Grid>
+        <Grid item xs={3}>
+          <Button onClick={props.openDaysDialog} variant="outlined">
+            Edit
+          </Button>
+        </Grid>
       </Grid>
     )}
     <Grid className="confirmDiv" container justify="center">

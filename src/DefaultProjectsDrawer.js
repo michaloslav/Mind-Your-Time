@@ -21,7 +21,7 @@ const DefaultProjectsDrawer = props => {
         <Typography variant="h6" className="drawerTitle">Repetitive projects:</Typography>
       </Grid>
       <Grid>
-        <label>
+        <label style={{color: props.settings.darkTheme ? "white" : "black"}}>
           Use repetitive projects
           <Switch
             color="primary"
@@ -43,6 +43,7 @@ const DefaultProjectsDrawer = props => {
             <TableCell/>
             <TableCell>Name</TableCell>
             <TableCell>Duration</TableCell>
+            {!props.mobile && <TableCell>Days</TableCell>}
             <TableCell/>
           </TableRow>
         </TableHead>
@@ -54,7 +55,7 @@ const DefaultProjectsDrawer = props => {
                   {!props.projects.length && (
                     <TableRow>
                       <TableCell/>
-                      <TableCell colSpan={2}>
+                      <TableCell colSpan={props.mobile ? 2 : 3}>
                         You haven't set any repetitive projects yet
                       </TableCell>
                       <TableCell/>
@@ -72,7 +73,7 @@ const DefaultProjectsDrawer = props => {
                           onDoneEditing={props.onDoneEditing}
                           onProjectStateChange={props.onProjectStateChange}
                           onDeleteProject={props.onDeleteProject}
-                          isDefaultProjects={true}
+                          isDefaultProjects
                           startEditingMobile={props.startEditingMobile}
                         />
                       )}

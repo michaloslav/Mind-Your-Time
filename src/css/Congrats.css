@@ -1,0 +1,15 @@
+.Congrats{
+  margin-top: 2rem;
+  width: 100%;
+  text-align: center;
+  color: #00c853 !important;
+}
+
+.congratsSpan{
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.Congrats canvas{
+  max-height: 40vh
+}

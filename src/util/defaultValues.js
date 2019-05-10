@@ -14,8 +14,12 @@ export const defaultSettings = {
   updateTimesAfterDelete: true,
   roundTo: 5,
   changeModeOnTab: false,
-  detectBreaksAutomatically: true
+  detectBreaksAutomatically: true,
+  adjustDurationOnPause: true,
+  offerToAdjustDurationOnDone: true,
+  darkTheme: false
 }
+
 
 export const defaultDataValues = {
   projects: [],
@@ -27,8 +31,9 @@ export const defaultDataValues = {
   mode: "planning",
   defaultColorIndex: 0,
   defaultColorIndexDefaultProjects: 0,
-  productivityPercentage: undefined,
+  productivityPercentages: {},
   useDefaultProjects: true,
   lastReset: undefined,
-  lastModified: {}
+  lastModified: {},
+  realEndTime: undefined
 }

@@ -4,6 +4,7 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import TimeCalc from './util/TimeCalc'
 
+// simple validation
 function isValidNumberInput(val, minSize, maxSize){
   if(
     val === "" || (
@@ -21,6 +22,7 @@ export default class TimeSetter extends Component {
     let val
     if(typeof e === "number") val = e // needs to accept the input from handleKeyDown
     else{
+      // get the value depending on the id
       if(id === "pm") val = e.target.value === "PM"
       else val = e.target.value
     }
@@ -78,7 +80,7 @@ export default class TimeSetter extends Component {
     let h = this.props.value.h
     h = h === 0 ? 12 : h
     let m = this.props.value.m
-    m = m === 0 ? "0" + m : m
+    m = m === 0 ? "0" + m : m // turns 0 into "00"
 
     return (
       <div className={"TimeSetterDesktop" + (this.props.showError ? " timeSetterError" : "")} style={{display: "inline"}}>

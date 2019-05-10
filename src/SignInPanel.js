@@ -7,6 +7,10 @@ import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import './css/SignInPanel.css'
 
+// this panel suggests that the user should sign in
+// if the user already dismissed the panel once, we want to give them an option...
+// to dismiss it permanently. So the first time the user clicks the close icon,...
+// dismiss the panel and after that, ask them if they want to dismiss it for now or permanently (using a Menu)
 export default class SignInPanel extends Component {
   constructor(props){
     super(props)

@@ -4,11 +4,12 @@ import IconButton from '@material-ui/core/IconButton';
 import Popover from '@material-ui/core/Popover';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import MenuIcon from '@material-ui/icons/Menu';
 import PauseIcon from '@material-ui/icons/Pause';
 import DoneIcon from '@material-ui/icons/Done';
 import './css/ChangeProjectStateDropdown.css'
 
+// used in the mobile version of the UI if the project's state is workingOnIt
+// gives the user the option to pause or mark the project as done
 export default class ChangeProjectStateDropdown extends Component{
   constructor(props){
     super(props)
@@ -25,20 +26,24 @@ export default class ChangeProjectStateDropdown extends Component{
   close = () => {
     this.setState({anchorEl: null})
     setTimeout(() => {
-      this.setState({showSetProgress: false})
+      this.setState({showSetProgress: false}) // hide the setProgress Popover
     }, 500)
   }
 
   render = () => {
     let {anchorEl} = this.state
 
+    // determines which action should be recommended (by coloring it with the primary color)
+    let suggestDone = this.props.progressCapped === this.props.row.estimatedDuration
+
     return (
       <React.Fragment>
         <IconButton
           aria-label="Open the project state dropdown"
           onClick={this.open}
-          color="primary">
-          <MenuIcon />
+          color="primary"
+        >
+          {suggestDone ? <DoneIcon color="primary" /> : <PauseIcon color="primary" />}
         </IconButton>
         <Popover
           className="ChangeProjectStateDropdownMenu"
@@ -59,12 +64,12 @@ export default class ChangeProjectStateDropdown extends Component{
                   [
                     {
                       title: "Pause",
-                      icon: <PauseIcon/>,
+                      icon: <PauseIcon color={suggestDone ? undefined : "primary"} />,
                       onClick: this.setState.bind(this, {showSetProgress: true}, null),
                     },
                     {
                       title: "Done",
-                      icon: <DoneIcon color="primary" />,
+                      icon: <DoneIcon color={suggestDone ? "primary" : undefined} />,
                       onClick: this.props.onProjectStateChange.bind(this, this.props.row.id, "done"),
                     }
                   ].map(el => (

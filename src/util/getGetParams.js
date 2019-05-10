@@ -1,3 +1,4 @@
+// converts the GET parameters from the URL into an object
 export default function getGetParams(locationSearch){
   let getParamsString = locationSearch.substr(1).split("&")
   let getParams = {}

@@ -13,6 +13,7 @@ import RemoveIcon from '@material-ui/icons/Remove';
 import AddIcon from '@material-ui/icons/Add';
 import withDefaultColorsEditing from '../HOCs/withDefaultColorsEditing'
 
+// editing the default colors of projects
 const SettingsDefaultColors = props => (
   <div className="SettingsDefaultColors container">
     <BackButton onClick={() => {props.history.push("/settings/")}} />

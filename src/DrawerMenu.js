@@ -34,7 +34,9 @@ class DrawerMenu extends Component{
   }
 
   componentDidUpdate(){
-    // set the timeout only if it isn't set already
+    // set the timeout of checkActive (only if it isn't set already)
+    // this makes sure that the component always knows which view the user is in but...
+    // also prevents it from being displayed while the drawer is closing which wouldn't look good
     if(!this.state.checkActiveTimeout){
       this.setState({
         checkActiveTimeout: setTimeout(() => {
@@ -46,6 +48,7 @@ class DrawerMenu extends Component{
   }
 
   componentWillUnmount(){
+    // prevents memory leaks
     let { checkActiveTimeout } = this.state
     clearTimeout(checkActiveTimeout)
     this.setState({checkActiveTimeout})
@@ -66,6 +69,7 @@ class DrawerMenu extends Component{
     this.props.close()
   }
 
+  // "planning" or "working"
   modeSwitch(mode){
     this.props.changeMode(mode)
     if(this.props.location.pathname !== "/") this.props.history.push("/")
@@ -78,12 +82,18 @@ class DrawerMenu extends Component{
     this.props.setNavbarState({planningCollapseOpenExplicit: true})
   }
 
+  // find out which view is currently active
+  // the argument means that we won't call setState but will instead return the value
   checkActive = (returnDontUpdate = false) => {
     let active
     let pathname = this.props.location.pathname
+
+    // if we're at the root, we care about whether we are planning or working
     if(pathname === "/") active = this.props.mode
     else{
       let pathname0 = this.props.location.pathname.split("/")[1]
+
+      // if we're adding or editing something, we care about what that something is (a project, break or a defaultProject?)
       if(pathname0 === "add" || pathname0 === "edit"){
         let { type } = getGetParams(this.props.location.search)
         switch(type){
@@ -97,14 +107,17 @@ class DrawerMenu extends Component{
             active = "planning"
         }
       }
+      // else use the pathname (eg. settings)
       else active = pathname0
     }
 
+    // determine if we should open the Collapse by default or not
     let planningCollapseOpen = (active === "planning" || active === "breaks" || active === "defaultProjects")
 
+    // if the function call wants us to return instead of calling setState, do so
     if(returnDontUpdate) return {active, planningCollapseOpen}
 
-    // check if there's anything to be updated
+    // check if there's anything to be updated, if there is, call setState
     let newState = {}
     if(active !== this.state.active) newState.active = active
     if(

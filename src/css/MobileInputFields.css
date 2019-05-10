@@ -32,5 +32,15 @@
 }
 
 .MobileInputFields .confirmDiv button{
-  margin-top: 2.5rem;
+  margin-top: 1.5rem;
+}
+
+.MobileInputFields div.days{
+  padding-top: 2rem;
+  padding-bottom: 1rem;
+}
+
+.MobileInputFields div.days button{
+  position: relative;
+  top: .6rem;
 }

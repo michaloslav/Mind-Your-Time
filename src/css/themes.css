@@ -1,0 +1,19 @@
+.lightRoot{
+  --nav-icon: #545454;
+  --drag-icon: #000000bf;
+  --label: #000000a3;
+  --link: #272727;
+  --text: black;
+}
+
+.darkRoot{
+  --nav-icon: #fff;
+  --drag-icon: #ffffffbf;
+  --label: #ffffffa3;
+  --link: #f7f7f7;
+  --text: white;
+  --footer: #ffffff95;
+
+  background-color: #0d0d0d;
+  color: var(--text);
+}

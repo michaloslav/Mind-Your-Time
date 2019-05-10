@@ -10,7 +10,7 @@ const EditProjectView = props => (
     {...props}
     button={
       <Button
-        onClick={(id, values) => {props.save(id, values); props.close();}}
+        onClick={props.save}
         color="primary"
         variant="contained"
       >

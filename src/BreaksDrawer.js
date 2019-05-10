@@ -14,11 +14,13 @@ import AddIcon from '@material-ui/icons/Add';
 import TimeSetter from './TimeSetter'
 import TimeCalc from './util/TimeCalc'
 import makeNewId from './util/makeNewId'
+import validationRegex from './util/validationRegex'
 import './css/BreaksDrawer.css'
 
 export default class BreaksDrawer extends Component{
   constructor(props){
     super(props)
+    // put some props into the state
     let breaks = JSON.parse(JSON.stringify(props.breaks))
     let newBreak = {}
 
@@ -58,10 +60,13 @@ export default class BreaksDrawer extends Component{
     }
   }
 
+  // used for simple text input editing (not the start or end times)
   handleInputChange(breakId, propertyId, e){
     let val = e.target.value
 
-    if(breakId === "new"){
+    if(validationRegex.test(val)) return // these characters could be problematic in the stringified JSON
+
+    if(breakId === "new"){ // "new" means the input fields of the last row that is used to add new breaks
       let newBreak = this.state.newBreak
       newBreak[propertyId] = val
       this.setState({newBreak})
@@ -82,6 +87,8 @@ export default class BreaksDrawer extends Component{
 
     let success
 
+    // endTime needs to be after startTime, if it isn't show an error
+    // (show the error after a timeout to prevent flashing errors as the user types)
     if(!TimeCalc.isBiggerThan(endTime, startTime, false, true)){
       success = false
 
@@ -105,15 +112,20 @@ export default class BreaksDrawer extends Component{
     return success
   }
 
+  // when the user edits the startTime/endTime
   handleTimeInputChange(breakId, propertyId, inputId, val){
-    if(breakId === "new"){
+    if(validationRegex.test(val)) return
+
+    if(breakId === "new"){ // see above
       let newBreak = this.state.newBreak
       let breakDurations = this.state.breakDurations
 
+      // inputId can either be a single field (eg. minutes) or the whole time object
       if(inputId === "object") newBreak[propertyId] = val
       else newBreak[propertyId][inputId] = val
 
       if(val !== ""){
+        // if the user edits the startTime, adjust endTime accordingly
         if(propertyId === "startTime"){
           newBreak.endTime = TimeCalc.add(newBreak.startTime, breakDurations.new)
         }
@@ -121,6 +133,7 @@ export default class BreaksDrawer extends Component{
         if(propertyId === "endTime"){
           this.validateEndTime(breakId, newBreak.startTime, newBreak.endTime)
 
+          // changing the endTime also changes the duration, the state needs to reflect that
           breakDurations.new = TimeCalc.subtractToMinutes(newBreak.endTime, newBreak.startTime, true)
         }
       }
@@ -133,13 +146,15 @@ export default class BreaksDrawer extends Component{
       let breakDurations = this.state.breakDurations
       let index = breaks.findIndex(el => el.id === breakId)
 
+      // accept both a single input (eg. minutes) or an entirely new time object
       if(inputId === "object") breaks[index][propertyId] = val
       else breaks[index][propertyId][inputId] = val
 
       let success = true
 
-      if(val === "") success = false
+      if(val === "") success = false // an empty string is not a valid time value for an existing break
       else {
+        // if the user changes the startTime, adjust the endTime too
         if(propertyId === "startTime"){
           breaks[index].endTime = TimeCalc.add(breaks[index].startTime, breakDurations[breakId])
         }
@@ -147,11 +162,13 @@ export default class BreaksDrawer extends Component{
         if(propertyId === "endTime"){
           success = this.validateEndTime(breakId, breaks[index].startTime, breaks[index].endTime)
 
+          // breakDurations need to be updated if the endTime is changed
           breakDurations[index] = TimeCalc.subtractToMinutes(breaks[index].endTime, breaks[index].startTime, true)
           this.setState({breakDurations})
         }
       }
 
+      // check if there were any errors
       let errors = this.state.errors
       errors[breakId] = !success
       let canClose = Object.values(errors).every(x => !x)
@@ -161,7 +178,9 @@ export default class BreaksDrawer extends Component{
     }
   }
 
+  // add a new break
   addBreak = () => {
+    // if there is an error coming from input validation, the user has to fix it first
     if(this.state.showEndTimeErrors.new) return
 
     let breaks = this.state.breaks
@@ -169,7 +188,6 @@ export default class BreaksDrawer extends Component{
 
     // make a new unique ID
     let newId = makeNewId(breaks, "breaks")
-
     newBreak.id = newId
 
     breaks.push(newBreak)
@@ -177,10 +195,12 @@ export default class BreaksDrawer extends Component{
     this.setState({breaks})
     this.props.onSave(breaks, {breaks: newId})
 
+    // adjust breakDurations to reflect the changes
     let breakDurations = this.state.breakDurations
     breakDurations.new = 30
     breakDurations[newId] = TimeCalc.subtractToMinutes(newBreak.endTime, newBreak.startTime, true)
 
+    // store new init values for the newBreak input fields
     this.setState({
       newBreak: {
         startTime: TimeCalc.add(newBreak.endTime, 90),
@@ -196,6 +216,7 @@ export default class BreaksDrawer extends Component{
     let index = breaks.findIndex(el => el.id === id)
     breaks.splice(index, 1)
 
+    // when the break is deleted, there's no reason to store any errors that might've been associated with it
     let errors = this.state.errors
     delete errors[id]
     let canClose = Object.values(errors).every(x => !x)
@@ -212,10 +233,9 @@ export default class BreaksDrawer extends Component{
     if(e.key === "Enter") this.addBreak()
   }
 
-  handleEnterPressNew = e => {
+  handleEnterPressNew = e => { // "new" -> when adding a new break
     if(e.key === "Enter") this.addBreak()
   }
-
 
   render = () => (
     <React.Fragment>
