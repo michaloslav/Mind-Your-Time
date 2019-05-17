@@ -476,7 +476,8 @@ export default class App extends Component {
     // change the values
     changedProject.name = values.name
     changedProject.estimatedDuration = values.duration
-    if(arrayId !== "defaultProjects") changedProject.plannedTime.start = values.startTime
+    if(arrayId === "defaultProjects") changedProject.days = values.days
+    else changedProject.plannedTime.start = values.startTime
 
     // insert the changedProject back into the array
     projects.splice(index, 0, changedProject)
