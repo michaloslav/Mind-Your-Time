@@ -13,7 +13,7 @@ export default class GoogleSignIn extends Component {
       if(window.confirm("Data syncing is still under beta testing. If you encouter any problems, please send us a bug report. It will only take a minute or two and it helps us a lot with improving the app.")){
         this.props.connect(res.tokenId)
       }
-    }, 0)
+    }, 50)
   }
 
   render = () => (
