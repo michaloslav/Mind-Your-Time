@@ -366,7 +366,8 @@ export default class DataSync extends Component{
     // send an update to the server (if the user is logged in and online)
     if(this.state.accessToken){
       if(!this.io.disconnected){
-        data.lastReset = this.state.lastReset // always send the lastReset along
+        // always send the lastReset along
+        if(!data.lastReset) data.lastReset = this.state.lastReset
 
         // only use the relevant part of lastModified
         let lastModifiedToSend = {}
