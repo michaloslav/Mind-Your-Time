@@ -7,7 +7,6 @@ import IconButton from '@material-ui/core/IconButton';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import CloseIcon from '@material-ui/icons/Close';
 import * as SocketIOClient from 'socket.io-client'
-import Cookies from 'universal-cookie';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import green from '@material-ui/core/colors/green';
 import { defaultDataValues } from './util/defaultValues'
@@ -15,8 +14,6 @@ import makeNewId from './util/makeNewId'
 import dataValidation from './util/dataValidation'
 import {areIdenticalObjects, mergeObjects} from './util/objectUtil'
 import './css/themes.css'
-
-const cookies = new Cookies()
 
 const lightTheme = createMuiTheme({
   palette: {
@@ -118,8 +115,8 @@ export default class DataSync extends Component{
     this.io.on("success", data => {
       // login
       if(data.type === "connectInsert" || data.type === "connectUpdate"){
-        // store the accessToken
-        cookies.set("accessToken", data.accessToken, {path: "/"})
+        // store the accessToken (in the localStorage for lack of a better place)
+        localStorage.accessToken = data.accessToken
 
         this.setState({
           accessToken: data.accessToken,
@@ -130,7 +127,7 @@ export default class DataSync extends Component{
       // logout
       if(data.type === "disconnect"){
         // remove the accessToken
-        cookies.remove("accessToken")
+        delete localStorage.accessToken
         this.setState({accessToken: undefined})
       }
     })
@@ -142,7 +139,7 @@ export default class DataSync extends Component{
       // if the accessToken is invalid, we should remove it to sign out the user
       // (we don't want the client side thinking it's still logged in if it's credentials are invalid)
       if(data.type === "invalidAccessToken"){
-        cookies.remove("accessToken")
+        delete localStorage.accessToken
         this.setState({accessToken: undefined})
       }
     })
@@ -196,7 +193,7 @@ export default class DataSync extends Component{
     // if the user's logged in, connect to the server using the gathered data
     (data => {
       setTimeout(() => {
-        let accessToken = cookies.get("accessToken")
+        let {accessToken} = localStorage
         if(accessToken){
           if(this.io.disconnected) this.setState({accessToken})
           else this.io.emit("connectInit", {type: "accessToken", accessToken, localData: data})
@@ -231,7 +228,7 @@ export default class DataSync extends Component{
         return
       }
 
-      this.io.emit("disconnectU", {accessToken: cookies.get("accessToken")})
+      this.io.emit("disconnectU", {accessToken: localStorage.accessToken})
     }
   }
 
