@@ -245,9 +245,11 @@ export default class DataSync extends Component{
         if(dayOfTheWeek < 0) dayOfTheWeek = 6
 
         // insert the defaultProjects into projects
+        // (don't insert the days array, break the object reference at the same time)
         data.projects = []
         this.state.defaultProjects.forEach(defProj => {
-          if(!defProj.days || defProj.days[dayOfTheWeek]) data.projects.push(defProj)
+          let {days, ...projectToInsert} = defProj
+          if(!days || days[dayOfTheWeek]) data.projects.push(projectToInsert)
         })
 
         // suggest a new startTime and set the project times
@@ -256,10 +258,9 @@ export default class DataSync extends Component{
         startTime = TimeCalc.round(startTime, settings.roundTo)
         data.projects = setTimesForProjects(data.projects, settings, [], startTime)
 
-        // generate a new unique ID and delete the days property for each project
+        // generate a new unique ID for each project
         data.projects.forEach(project => {
           project.id = makeNewId(data.projects, "projects")
-          delete project.days
         })
 
         // set the startTime

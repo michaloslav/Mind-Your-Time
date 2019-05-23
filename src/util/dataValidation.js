@@ -127,7 +127,7 @@ function validateObject(keys, val){
         // if so, pass it up
         // (in other word take it from the validated object and put it into the object that will eventually be returned
         // to make sure all the sysNotes are in 1 place)
-        if(correctedVal[objKey].__lastModifiedSysNote){
+        if(correctedVal[objKey] && correctedVal[objKey].__lastModifiedSysNote){
           if(!correctedVal.__lastModifiedSysNote) correctedVal.__lastModifiedSysNote = {}
           correctedVal.__lastModifiedSysNote[objKey] = correctedVal[objKey].__lastModifiedSysNote
           delete correctedVal[objKey].__lastModifiedSysNote
