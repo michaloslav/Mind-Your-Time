@@ -1,0 +1,1 @@
+{"version":3,"sources":["F:/Programming/React/MindYourTime/src/css/F:/Programming/React/MindYourTime/src/css/AddFab.css"],"names":[],"mappings":"AAAA,QACE,yBAA2B,AAC3B,WAAY,AACZ,WAAa,CACd","file":"24.a8041626.chunk.css","sourcesContent":[".AddFab{\r\n  position: fixed !important;\r\n  right: 2rem;\r\n  bottom: 2rem;\r\n}\r\n"]}
