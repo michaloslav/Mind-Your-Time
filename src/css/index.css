@@ -13,7 +13,7 @@ code {
     monospace;
 }
 
-a{
+a:not(.noStyling){
   color: var(--link);
   text-decoration: none;
 }
