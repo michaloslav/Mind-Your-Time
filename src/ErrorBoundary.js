@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import * as Sentry from '@sentry/browser';
 
 export default class ErrorBoundary extends Component{
   constructor(props){
@@ -6,6 +7,11 @@ export default class ErrorBoundary extends Component{
     this.state = {
       hasError: false,
       error: null
+    }
+
+    // init Sentry (error logging) if in production
+    if(process.env.NODE_ENV === 'production'){
+      Sentry.init({ dsn: 'https://4ff9b4a95e3d4694b3191e745dc529ff@sentry.io/1480676' })
     }
   }
 
