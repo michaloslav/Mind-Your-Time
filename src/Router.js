@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Switch, Route, Redirect } from "react-router-dom";
-import App from "./App"
-import Settings from "./Settings"
-import About from "./About"
-import SettingsDefaultColors from "./MobileViews/SettingsDefaultColors"
-import LinkToRoot from './LinkToRoot'
-import Navbar from "./Navbar"
-import Footer from "./Footer"
+import LoadingFallback from './LoadingFallback'
 import { defaultSettings } from './util/defaultValues'
 import { IsMobileContext } from './_Context'
+const App = React.lazy(() => import('./App'))
+const Settings = React.lazy(() => import('./Settings'))
+const About = React.lazy(() => import('./About'))
+const SettingsDefaultColors = React.lazy(() => import('./MobileViews/SettingsDefaultColors'))
+const LinkToRoot = React.lazy(() => import('./LinkToRoot'))
+const Navbar = React.lazy(() => import('./Navbar'))
+const Footer = React.lazy(() => import('./Footer'))
 
 export default class extends Component {
   constructor(props){
@@ -95,42 +96,48 @@ export default class extends Component {
 
     return (
       <Router>
-        {
-          isMobile ? (
-              <Navbar
-                data={this.props.data}
-                connect={this.props.connect}
-                changeMode={this.changeMode}
-                disconnect={this.props.disconnect}
-                loggedIn={this.props.loggedIn}
-                currentTime={this.state.currentTime}
-                onCurrentTimeChange={currentTime => {this.setState({currentTime})}}
-                update={localStorage.devUnlocked ? this.props.update : {}}
-              />
-            ) : (
-              <Switch>
-                <Route path="/(|add|edit|breaks|defaultProjects)" exact />
-                <Route component={LinkToRoot} />
-              </Switch>
-          )
-        }
+        <React.Suspense fallback={<LoadingFallback/>}>
+          {
+            isMobile ? (
+                <Navbar
+                  data={this.props.data}
+                  connect={this.props.connect}
+                  changeMode={this.changeMode}
+                  disconnect={this.props.disconnect}
+                  loggedIn={this.props.loggedIn}
+                  currentTime={this.state.currentTime}
+                  onCurrentTimeChange={currentTime => {this.setState({currentTime})}}
+                  update={localStorage.devUnlocked ? this.props.update : {}}
+                />
+              ) : (
+                <Switch>
+                  <Route path="/(|add|edit|breaks|defaultProjects)" exact />
+                  <Route component={LinkToRoot} />
+                </Switch>
+            )
+          }
+        </React.Suspense>
         <IsMobileContext.Provider value={isMobile}>
-          <Switch>
-            <Route path="/settings/defaultColors/" render={this.SettingsDefaultColorsWithProps}/>
-            <Route path="/settings/" render={this.SettingsWithProps}/>
-            <Route path="/about/" component={About}/>
-            <Route path="/robots.txt" target="_self" />
-            <Route path="/(|add|edit|breaks|defaultProjects)" exact render={this.AppWithProps}/>
-            <Route render={() => <Redirect to="/" />} />
-          </Switch>
+          <React.Suspense fallback={<LoadingFallback/>}>
+            <Switch>
+              <Route path="/settings/defaultColors/" render={this.SettingsDefaultColorsWithProps}/>
+              <Route path="/settings/" render={this.SettingsWithProps}/>
+              <Route path="/about/" component={About}/>
+              <Route path="/robots.txt" target="_self" />
+              <Route path="/(|add|edit|breaks|defaultProjects)" exact render={this.AppWithProps}/>
+              <Route render={() => <Redirect to="/" />} />
+            </Switch>
+          </React.Suspense>
         </IsMobileContext.Provider>
-        {
-          isMobile ? (
-            <Route path="/about/" component={Footer} />
-          ) : (
-            <Footer />
-          )
-        }
+        <React.Suspense fallback={<LoadingFallback/>}>
+          {
+            isMobile ? (
+              <Route path="/about/" component={Footer} />
+            ) : (
+              <Footer />
+            )
+          }
+        </React.Suspense>
       </Router>
     )
   }

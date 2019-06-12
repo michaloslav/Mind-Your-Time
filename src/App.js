@@ -1,18 +1,10 @@
 import React, { Component } from 'react';
-import AddProjectView from "./MobileViews/AddProjectView"
-import EditProjectView from "./MobileViews/EditProjectView"
-import BreaksView from "./MobileViews/BreaksView"
-import DefaultProjectsView from "./MobileViews/DefaultProjectsView"
-import ModeSwitch from './ModeSwitch'
 import ProjectsTable from './ProjectsTable'
 import TimeSetter from './TimeSetter'
-import TimeStats from './TimeStats'
 import BreaksDrawer from './BreaksDrawer'
 import DefaultProjectsDrawer from './DefaultProjectsDrawer'
 import SignInPanel from './SignInPanel'
-import DropdownMenu from './DropdownMenu'
-import AddFab from './AddFab'
-import Congrats from './Congrats'
+import LoadingFallback from './LoadingFallback'
 import Grid from '@material-ui/core/Grid'
 import Button from '@material-ui/core/Button';
 import Drawer from '@material-ui/core/Drawer';
@@ -20,7 +12,6 @@ import Slide from '@material-ui/core/Slide';
 import Snackbar from '@material-ui/core/Snackbar';
 import IconButton from '@material-ui/core/IconButton';
 import { Link } from "react-router-dom";
-import SettingsIcon from '@material-ui/icons/Settings';
 import PauseIcon from '@material-ui/icons/Pause';
 import StartIcon from '@material-ui/icons/PlayArrow';
 import AutorenewIcon from '@material-ui/icons/Autorenew';
@@ -30,6 +21,16 @@ import makeNewId from './util/makeNewId'
 import getGetParams from './util/getGetParams'
 import { SettingsContext, IsMobileContext } from './_Context'
 import './css/App.css'
+const AddProjectView = React.lazy(() => import('./MobileViews/AddProjectView'))
+const EditProjectView = React.lazy(() => import('./MobileViews/EditProjectView'))
+const BreaksView = React.lazy(() => import('./MobileViews/BreaksView'))
+const DefaultProjectsView = React.lazy(() => import('./MobileViews/DefaultProjectsView'))
+const ModeSwitch = React.lazy(() => import('./ModeSwitch'))
+const TimeStats = React.lazy(() => import('./TimeStats'))
+const Congrats = React.lazy(() => import('./Congrats'))
+const DropdownMenu = React.lazy(() => import('./DropdownMenu'))
+const SettingsIcon = React.lazy(() => import('@material-ui/icons/Settings'))
+const AddFab = React.lazy(() => import('./AddFab'))
 
 export default class App extends Component {
   constructor(props){
@@ -836,18 +837,20 @@ export default class App extends Component {
       }
 
       return (
-        <AddProjectView
-          settings={this.props.data.settings}
-          defaultColorIndex={defaultColorIndex}
-          showErrors={this.state.showErrors}
-          currentTime={this.props.currentTime}
-          lastProject={this.props.data.projects[this.props.data.projects.length - 1]}
-          onAddProject={this.addProject.bind(this, arrayId)}
-          onAddBreak={this.addBreak}
-          type={getParams.type}
-          close={closeFunc}
-          title={title}
-        />
+        <React.Suspense fallback={<LoadingFallback/>}>
+          <AddProjectView
+            settings={this.props.data.settings}
+            defaultColorIndex={defaultColorIndex}
+            showErrors={this.state.showErrors}
+            currentTime={this.props.currentTime}
+            lastProject={this.props.data.projects[this.props.data.projects.length - 1]}
+            onAddProject={this.addProject.bind(this, arrayId)}
+            onAddBreak={this.addBreak}
+            type={getParams.type}
+            close={closeFunc}
+            title={title}
+          />
+        </React.Suspense >
       )
     }
 
@@ -909,14 +912,16 @@ export default class App extends Component {
         }
 
         return (
-          <EditProjectView
-            settings={this.props.data.settings}
-            inputValues={inputValues}
-            delete={deleteFunc}
-            onDoneEditing={doneEditingFunc}
-            close={close}
-            type={type}
-          />
+          <React.Suspense fallback={<LoadingFallback/>}>
+            <EditProjectView
+              settings={this.props.data.settings}
+              inputValues={inputValues}
+              delete={deleteFunc}
+              onDoneEditing={doneEditingFunc}
+              close={close}
+              type={type}
+            />
+          </React.Suspense>
         )
       }
     }
@@ -926,10 +931,12 @@ export default class App extends Component {
       this.props.data.breaks
     ){
       return (
-        <BreaksView
-          breaks={this.props.data.breaks}
-          changeView={this.changeView.bind(this)}
-        />
+        <React.Suspense fallback={<LoadingFallback/>}>
+          <BreaksView
+            breaks={this.props.data.breaks}
+            changeView={this.changeView.bind(this)}
+          />
+        </React.Suspense>
       )
     }
 
@@ -938,22 +945,24 @@ export default class App extends Component {
       this.props.data.defaultProjects
     ){
       return (
-        <DefaultProjectsView
-          projects={this.props.data.defaultProjects}
-          settings={this.props.data.settings}
-          defaultColorIndex={this.props.data.defaultColorIndexDefaultProjects}
-          useDefaultProjects={this.props.data.useDefaultProjects}
-          onColorChange={this.handleColorChange.bind(this, "defaultProjects")}
-          onDoneEditing={this.handleDoneEditingProject.bind(this, "defaultProjects")}
-          onAddProject={this.addProject.bind(this, "defaultProjects")}
-          onDeleteProject={this.deleteProject.bind(this, "defaultProjects")}
-          onDragEnd={this.handleDragEnd.bind(this, "defaultProjects")}
-          onUseDefaultProjectsChange={e => {this.props.update({useDefaultProjects: e.target.checked})}}
-          startEditingMobile={id => {
-            this.changeView("edit", true, {type: "default", id})
-          }}
-          changeView={this.changeView.bind(this)}
-        />
+        <React.Suspense fallback={<LoadingFallback/>}>
+          <DefaultProjectsView
+            projects={this.props.data.defaultProjects}
+            settings={this.props.data.settings}
+            defaultColorIndex={this.props.data.defaultColorIndexDefaultProjects}
+            useDefaultProjects={this.props.data.useDefaultProjects}
+            onColorChange={this.handleColorChange.bind(this, "defaultProjects")}
+            onDoneEditing={this.handleDoneEditingProject.bind(this, "defaultProjects")}
+            onAddProject={this.addProject.bind(this, "defaultProjects")}
+            onDeleteProject={this.deleteProject.bind(this, "defaultProjects")}
+            onDragEnd={this.handleDragEnd.bind(this, "defaultProjects")}
+            onUseDefaultProjectsChange={e => {this.props.update({useDefaultProjects: e.target.checked})}}
+            startEditingMobile={id => {
+              this.changeView("edit", true, {type: "default", id})
+            }}
+            changeView={this.changeView.bind(this)}
+          />
+        </React.Suspense>
       )
     }
 
@@ -975,20 +984,22 @@ export default class App extends Component {
             autoselect="true"
           >
             {!isMobile && (
-              <ModeSwitch
-                mode={this.props.data.mode}
-                onModeChange={this.props.changeMode}>
-                <TimeStats
-                  currentTime={this.props.currentTime}
-                  onCurrentTimeChange={this.handleCurrentTimeChange}
-                  endTime={this.props.data.endTime}
-                  projects={this.props.data.projects}
-                  breaks={this.props.data.breaks}
-                  settings={this.props.data.settings}
-                  startTime={this.props.data.startTime}
-                  realEndTime={this.props.data.realEndTime}
-                />
-              </ModeSwitch>
+              <React.Suspense fallback={<LoadingFallback/>}>
+                <ModeSwitch
+                  mode={this.props.data.mode}
+                  onModeChange={this.props.changeMode}>
+                  <TimeStats
+                    currentTime={this.props.currentTime}
+                    onCurrentTimeChange={this.handleCurrentTimeChange}
+                    endTime={this.props.data.endTime}
+                    projects={this.props.data.projects}
+                    breaks={this.props.data.breaks}
+                    settings={this.props.data.settings}
+                    startTime={this.props.data.startTime}
+                    realEndTime={this.props.data.realEndTime}
+                  />
+                </ModeSwitch>
+              </React.Suspense>
             )}
             <Grid container>
               <SettingsContext.Provider value={this.props.data.settings}>
@@ -1109,12 +1120,14 @@ export default class App extends Component {
                   // working mode
                   (
                     allProjectsDone && (
-                      <Congrats
-                        productivityPercentages={this.props.data.productivityPercentages}
-                        allProjectsDone={this.state.allProjectsDone}
-                        totalTimeWorkedString={this.state.totalTimeWorkedString}
-                        dateString={this.getDateString()}
-                      />
+                      <React.Suspense fallback={<LoadingFallback/>}>
+                        <Congrats
+                          productivityPercentages={this.props.data.productivityPercentages}
+                          allProjectsDone={this.state.allProjectsDone}
+                          totalTimeWorkedString={this.state.totalTimeWorkedString}
+                          dateString={this.getDateString()}
+                        />
+                      </React.Suspense>
                     )
                   )
                 }
@@ -1131,7 +1144,7 @@ export default class App extends Component {
               </SettingsContext.Provider>
             </Grid>
             {!isMobile && (
-              <React.Fragment>
+              <React.Suspense fallback={<LoadingFallback/>}>
                 <Link id="linkToSettings" to="/settings" aria-label="Settings" title="Settings">
                   <SettingsIcon />
                 </Link>
@@ -1143,7 +1156,7 @@ export default class App extends Component {
                   data={localStorage.devUnlocked ? this.props.data : {}}
                   update={localStorage.devUnlocked ? this.props.update : {}}
                 />
-              </React.Fragment>
+              </React.Suspense>
             )}
             <Slide
               direction="right"
@@ -1164,9 +1177,11 @@ export default class App extends Component {
               />
             </Slide>
             {isMobile && this.props.data.mode === "planning" && (
-              <AddFab
-                onClick={this.changeView.bind(this, "add", true)}
-              />
+              <React.Suspense fallback={<LoadingFallback/>}>
+                <AddFab
+                  onClick={this.changeView.bind(this, "add", true)}
+                />
+              </React.Suspense>
             )}
 
             <Snackbar

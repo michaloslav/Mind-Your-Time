@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
 import ColorPicker from './ColorPicker'
-import ProjectsTableRowEditing from './ProjectsTableRowEditing'
-import ProjectsTableRowDisplay from './ProjectsTableRowDisplay'
+import LoadingFallback from './LoadingFallback'
 import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
 import RootRef from '@material-ui/core/RootRef';
 import Icon from '@material-ui/core/Icon';
 import TimeCalc from './util/TimeCalc'
 import './css/ProjectsTableRow.css'
+const ProjectsTableRowEditing = React.lazy(() => import('./ProjectsTableRowEditing'))
+const ProjectsTableRowDisplay = React.lazy(() => import('./ProjectsTableRowDisplay'))
 
 // used both for diplaying and editing projects (at least in the desktop version)
 // used both for projects and defaultProject
@@ -101,19 +102,21 @@ export default class ProjectsTableRow extends Component {
             <ColorPicker value={this.props.row.color} onChange={this.props.onColorChange.bind(this, this.props.row.id)}/>
           </TableCell>
 
-          {showEditing ? (
-            <ProjectsTableRowEditing
-              close={() => this.setState({editing: false})}
-              {...passThroughProps}
-            />
-          ) : (
-            <ProjectsTableRowDisplay
-              progress={progress}
-              progressCapped={progressCapped}
-              startEditing={() => this.setState({editing: true})}
-              {...passThroughProps}
-            />
-          )}
+          <React.Suspense fallback={<LoadingFallback/>}>
+            {showEditing ? (
+              <ProjectsTableRowEditing
+                close={() => this.setState({editing: false})}
+                {...passThroughProps}
+              />
+            ) : (
+              <ProjectsTableRowDisplay
+                progress={progress}
+                progressCapped={progressCapped}
+                startEditing={() => this.setState({editing: true})}
+                {...passThroughProps}
+              />
+            )}
+          </React.Suspense>
         </TableRow>
       </RootRef>
     )
