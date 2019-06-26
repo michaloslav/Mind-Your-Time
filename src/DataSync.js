@@ -234,6 +234,7 @@ export default class DataSync extends Component{
 
   // if any data changes in the app, update the state and if logged in, send an update to the server
   update = (data, changes) => {
+    console.log(data, changes);
     // handle a reset
     if(data.projects && !data.projects.length && this.state.projects.length){
       if(data.useDefaultProjects || this.state.useDefaultProjects){

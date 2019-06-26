@@ -1,6 +1,4 @@
-// shows the proper structure of the data, used for validating data to make sure nothing gets corrupted
-
-import {defaultSettings} from './defaultValues'
+import {defaultSettings} from '../defaultValues'
 
 // define types
 const numberOptional = {type: "number"}
@@ -14,7 +12,7 @@ const date = {type: "string", isDate: true}
 const array = elements => ({type: "object", isArray: true, elements})
 const object = properties => ({type: "object", properties})
 
-const projectBaseline = { // what projects and defaultProjects have in common
+const projectBaseline = { // what projects and defaultProjects
   id: number,
   name: string,
   color: string,
@@ -28,7 +26,6 @@ const projectBaseline = { // what projects and defaultProjects have in common
 }
 
 // create the settings structure based on defaultSettings
-// the settings object only contains primitives and arrays
 var settingsStructure = {}
 for(let [key, val] of Object.entries(defaultSettings)){
   let typeofVal = typeof val
@@ -45,7 +42,6 @@ for(let [key, val] of Object.entries(defaultSettings)){
 }
 
 // create the lastModifiedStructure
-// (each primitive has its own field, each object has its own nested object)
 var lastModifiedStructure = {}
 const primitivesInLastModified = ["startTime", "endTime", "mode", "defaultColorIndex",
   "defaultColorIndexDefaultProjects", "lastReset", "useDefaultProjects"]
@@ -78,7 +74,7 @@ for(let [key, val] of Object.entries(objectsInLastModified)){
 }
 
 
-export const correctDataStructure = {
+const correctDataStructure = {
   projects: array(object({
     ...projectBaseline,
     startedWorkingOnIt: timeObjectOptional,
@@ -107,3 +103,5 @@ export const correctDataStructure = {
   realEndTime: date,
   lastModified: object(lastModifiedStructure)
 }
+
+export default correctDataStructure
