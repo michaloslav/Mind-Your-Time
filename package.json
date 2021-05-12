@@ -8,7 +8,7 @@
     "@material-ui/core": "^3.9.2",
     "@material-ui/icons": "^3.0.1",
     "@sentry/browser": "^5.4.0",
-    "chart.js": "^2.8.0",
+    "chart.js": "^2.9.4",
     "core-js": "^3.0.1",
     "gh-pages": "^2.0.1",
     "material-ui-time-picker": "^1.1.0",
